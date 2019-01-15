@@ -1,0 +1,9 @@
+\section{Chap2 EXTERNAL DATA REPRESENTATION} in OSI Presentation Layer
+\subsection*{Heterogeneity}
+HW: Diff. HW architectures store bytes:Big Small Endian
+ProgrammingLanguage:Diff. PL store data types differently:AB, 0AB \\
+\textbf{Transformation between representations}: Transformation between local and remote representations|Information may lost
+\\Two realizations:
+$1.$\textbf{Pairwise transformation between $n$ local representations}(vollständigGraph,$\#n^2 - n$, Either sender or receiver has to transform) 
+$2.$\textbf{Transformation to and from canonical representation}(a single canonical $C$ as intermediate representation|No local information about communication
+partner needed| $\#2*(n-2)$, $ -2$if canonical is one of $n$)

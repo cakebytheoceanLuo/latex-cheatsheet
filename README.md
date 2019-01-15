@@ -1,4 +1,14 @@
-## Template for a very compact LaTeX Cheatsheet
+# Template for a very compact LaTeX Cheat Sheet
+
+In this repo you will find some Cheat Sheet, that I brought to my exam, in which we could bring our single  digital printed A4 paper. So I decided to use $\LaTeX$ to build these Cheat Sheet.
+
+This repo is based on [the forked repo](https://github.com/tim-st/latex-cheatsheet).
+
+Hope you could enjoy that!
+
+---
+这里你可以找到一些$\LaTeX$的考试公式参考。 希望能帮到你
+
 
 ![page 1](https://i.stack.imgur.com/jEcrv.png)
 

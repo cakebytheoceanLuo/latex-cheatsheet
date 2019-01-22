@@ -1,4 +1,4 @@
-\documentclass[10pt,landscape,a4paper]{article}
+\documentclass[8pt,landscape,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman]{babel}
 \usepackage[T1]{fontenc}
@@ -15,10 +15,37 @@
 \usepackage[framemethod=tikz]{mdframed}
 \usepackage{microtype}
 \usepackage{pdfpages}
+\usepackage{graphicx}
+\usepackage{lipsum}  % generates filler text
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{xparse}
+\usepackage{courier} %% Sets font for listing as Courier.
+
 
 \let\bar\overline
 
 \include{content/def}
+
+\NewDocumentCommand{\codeword}{v}{%
+\texttt{\textcolor{blue}{#1}}%
+}
+
+% \lstset{language=Java, breakatwhitespace=true, keywordstyle={\bfseries \color{blue}}}
+
+\lstset{
+  language=Java,
+  tabsize = 2, %% Sets tab space width.
+  showstringspaces = false, %% Prevents space marking in strings, string is defined as the text that is generally printed directly to the console.
+  numbers = left, %% Displays line numbers on the left.
+  commentstyle = {\bfseries \color{green}}, %% Sets comment color.
+  keywordstyle = {\bfseries \color{blue}}, %% Sets  keyword color.
+  stringstyle = {\bfseries \color{red}}, %% Sets  string color.
+  rulecolor = {\bfseries \color{black}}, %% Sets frame color to avoid being affected by text color.
+  basicstyle = \small \ttfamily , %% Sets listing font and size.
+  breaklines = true, %% Enables line breaking.
+  numberstyle = \tiny,
+}
 
 \begin{document}
 %\footnotesize

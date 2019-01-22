@@ -11,8 +11,8 @@ Hope you could enjoy that!
 的考试公式参考。 希望能帮到你
 
 ---
-Example about discrete math(but in German):
-一个关于离散数学的例子Pdf(但是用的德语)
+Example about discrete math(but in German):   
+一个关于离散数学的例子Pdf(但是用的德语):  
 ![page 1](https://i.stack.imgur.com/jEcrv.png)
 
 ![page 2](https://i.stack.imgur.com/jq4dI.png)

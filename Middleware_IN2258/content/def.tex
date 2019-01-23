@@ -42,6 +42,7 @@ von~Jigao,~Seite~\thepage~von~2
                                 {.2ex}%x
                                 {\sffamily\bfseries}}
 \newcommand{\rtext}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\btext}[1]{\textcolor{blue}{\textbf{#1}}}
 
 
 \def\multi@column@out{%
@@ -72,7 +73,7 @@ von~Jigao,~Seite~\thepage~von~2
 %%%%% START CHANGE
 \ifnum\count@=\numexpr\mult@rightbox+2\relax
           \setbox\count@\vsplit\@cclv to \dimexpr \dimen@-1cm\relax
-\setbox\count@\vbox to \dimen@{\vbox to 1cm{\header}\unvbox\count@\vss}%
+% \setbox\count@\vbox to \dimen@{\vbox to 1cm{\header}\unvbox\count@\vss}%
 \else
       \setbox\count@\vsplit\@cclv to \dimen@
 \fi

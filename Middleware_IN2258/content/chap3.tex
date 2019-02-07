@@ -1,0 +1,44 @@
+\section{Chap3-PRC/SessionLayer}
+\rtext{Remote Procedure Call}: Call non-local procedure on remote machine, like local call
+\textbar Hidden: Definition of message and content types, Marshalling/unmarshalling of parameters, Sending/receiving messages
+\btext{Sequence, COMU} 
+1.Client RPC, issues request to a client stub (a proxy object).
+\textbar 2. Client stub encodes parameters(marshalling, Chap2)
+\textbar 3. Given a network address(LAN, Internet), the client stub calls the server stub via RPC. 
+The RPC can be executed using a RPC library,a socket connection or another protocol.
+\textbar 4. The server stub receives the RPC.
+\textbar 5. The server sub decodes the parameters(ummarshalling) and calls the local procedure on the server.
+\textbar 6. Server executes RPC.
+\textbar 7. Local procedure $\overset{result}{\rightarrow}$ server stub $\overset{result}{\rightarrow}$ client.
+\btext{Parameter}
+CallByValue: easy forRPC
+\textbar CallByRef: notForRPC (client,server different address spaces) $\rightarrow$ call-by-copy (serialize objects with Thrift, Protocol
+Buffers)
+\btext{Binding}
+StaticB: Hardcoded reference to server 
+\textbar Simple and effective, no additional infrastructure
+\textbar Client and Server tightly coupled
+\textbar \textbar 
+DynamicB:
+Relies on Name and directory services to locate servers
+\textbar Cost is in additional infrastructure, protocol and registration primitives
+\textbar in 3. C requests service, executes RPC with S address. NameService provides S address (S registed service at directory)
+\btext{RPC Sockets}in 3: RPC call, p2p comm, connect S port. S accept connection.
+\btext{Error}
+1.LostRequest(longer than Timeout of C,resend $\overset{SequenceNum}{\rightarrow}$ NoDuplicates)
+\textbar 2.LostReply(S caches result, resend back whenDuplicates. If reply acknowledged,delete cache)
+\textbar 3.ClientCrash(S waits ACK forever, orphan. 
+C restart $\overset{SessionCounter}{\rightarrow}$  old reply not interfere with new requests)
+\textbar 4.ServerCrash(C notKnow RPC executed or not. S logs keepingstate of the procedure $\rightarrow$ noMultiExecutions)
+\btext{FailureSemantics}
+1.Maybe (No repetition,Simple and efficient,No guarantee for success)
+\textbar 2.AtLeastOnce(Repetition after timeout,No identification of duplicates, Acceptable for idempotent operations)
+\textbar 3.AtMostOnce(Identification of duplicates:sequenceNum, No repetition, Acceptable for non-idempotent operations, No result when S crash)
+\textbar 4.ExactlyOnce(State of procedure is recorded, 
+Only possible with transactional processing $\rightarrow$ Atomic execution, After S crash operation can be recovered and executed exactly once)
+
+\rtext{Remote Method Invocation RMI} Object-oriented RPC, Procedure call on remote object, Method parameters can be send two ways
+(call-by-value $\rightarrow$Implement Serializable, call-by-reference $\rightarrow$ extend Remote interface),
+Object reference identifies remote object
+\rtext{RMIvsRPC}RPC(Procedures of remote processes are called,Service interface provides set of procedures)
+\textbar RMI(Objects in different processes communicate with each other, Remote interface specifies methods of an object)

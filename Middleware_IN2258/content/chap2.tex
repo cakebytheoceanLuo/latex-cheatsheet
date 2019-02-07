@@ -40,8 +40,11 @@ have to be updated)
 \textbar \textbf{- XML/JSON}: verbose, badPreformance, longOverhead, slowWriteParse
 \rtext{ProtocolBuffersGoogle}: Similar concept like ASN.1, but not standard, efficient binary serialization, heterogeneous systems
 \btext{data structures defined in .proto file(IDL) generate serialization code(Java, C$\#$), then java, .NET projects request, response each other}
-\textbar .proto: \lstinline{message forecast{required string weekday =1 required int32 temperature =2 repeated string tags =3 }\}}
+\textbar DataModel.proto: \lstinline{message forecast{required string weekday =1;required int32 temperature =2;repeated string tags =3; optional float price=4;}\}}
 \includegraphics[width=.45\linewidth]{chap2_6.png}
+\textbar RPC ServiceInterface.proto: \lstinline{enum Status{OK=0;EXISTING=1;NOT_EX=2;ERROR=3;}} \lstinline{message SearchRequest{required String attribute =1;required String value =2;}} \lstinline{message CustomerList{repeated Customer customers =1;}}
+\lstinline{service AdministrationService{rpc CreateCustomer (Customer) return (Status); rpc DeleteCustomer(Customer) return (Status); rpc SearchCustomer(SearchRequest) return (CustomerList);}}
+
 \textbar \textbf{+:}efficient writing/parsing,well documented,Versioning \textbf{-:}No RPC
 \rtext{ApacheThrift:framwork, applied Hadoop and HBase}
 .thrift: \lstinline{struct Forecast{1: string weekday 2: i32 temperature 3: list<string> tags}\}}

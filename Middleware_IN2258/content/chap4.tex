@@ -1,0 +1,12 @@
+\section{C4-Naming}
+\rtext{NamingService} DNS(DomainNameSystem) $\rightarrow$ url to IP of host serving this domain
+\textbar A world-wide distributed database of name servers
+
+\section{WebService}
+\rtext{SOAP}Simple Object Access Protocol
+Message format: Envelope(Enclosing entity of a message,Defines namespace)
+Header(Contains metadata for the body,Many WS-* extensions add additional information here)
+Body(Contains the payload, Further specifications define the body structure)
+\rtext{RPCvsDocumentStyle}
+SOAP message is constructed in a specific way, call the Web service just like a normal function, Body of message contains parameters and method name as wrapper element,marshalling/unmarshalling is part of the standard
+\textbar contains no restrictions, Message body is a XML document, C/S handles the marshalling/unmarshalling

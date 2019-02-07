@@ -1,0 +1,163 @@
+\section{C5-Messaging\&Queuing}
+\btext{MessageQueuingPattern}data shared across applications on different platforms, MQP  transfer packets of data (messages) frequently, immediately, reliably, 
+exactly once, and asynchronously, using customizable formats (Enterprise application integration EAI)
+\textbar MessagePassing: message(receiver+sender+type+payload) queuing without message buffering
+\lstinline{send(message); receive(message); callback();}
+\textbar \btext{MessagingvsRMI}
+One interface (per messaging product) with generic operations,
+Lower-level of abstraction than remote invocations,
+Flexible in that messaging allows arbitrary interaction patterns between sender and receiver,
+Sender is not blocked after sending,
+Can emulate request/reply pattern,
+Asynchronous behavior more difficult to use and debug
+$\Leftrightarrow$
+Interface required and known, but differs across apps, 
+Programming model resembles non-remote calls,
+Realizes request/reply pattern,
+Sender blocked until reply arrives, unless there is an error,
+As compared to non-remote call, more potential for failures
+\textbar \btext{MessagePassingProperties}
+Reliability(SequenceNum, Ack, Timeout and re-transmission$\rightarrow$Message loss,
+Check-sums, Error correcting codes (redundancy in transmission to reconstruct),Repeated sending $\rightarrow$ Message Corruption)
+ordering(message arrive in a specific order: FIFO,Causal,Total),
+Synchronous vs. asynchronous sending
+Synchronous vs. asynchronous receiving
+Buffering of messaging $\rightarrow$ Queuing
+\textbar \btext{SynchronousComm}
+Sender blocked until receive on receiver-side completed,
+Receiver blocked until sendon sender-side completed,
+Syn equalizes sender/receiver speeds $\rightarrow$ Deadlock,
+\btext{+:}
+Sender knows that message was received,
+Only single message needs to be buffered,
+Synchronizes sender and receiver operating at different speeds
+\btext{-:}
+Sender and receiver are coupled (i.e., need to be up at the same time),
+Sender and receiver are blocked, which reduces potential for parallelism and potential for deadlock
+\textbar \btext{AsyCom}
+Send not blocked; MW buffers message on sender-side or on receiver-side,
+SenderBuffer enables to temporarily send faster than message transmission,
+Receiver buffer enables to temporarily receive more messages than can be processed,
+Buffers temporarily mitigate speed variances of sender and receiver, but not permanently!
+\btext{+:}
+Sender and receiver are loosely coupled, not same time
+More potential for parallelism than in synchronous case
+\btext{-:}
+Sender does not know if or when a message was received,
+Buffers full,
+Dev. Debug. complex
+\textbar \btext{MessageBuffering}
+BufferOverflow
+send buffer full $\rightarrow$
+Sender blocks,
+A buffered message is over-written,
+Exception, error returned to sender
+\textbar
+receive buffer full $\rightarrow$
+Message dropped,
+A buffered message is over-written,
+A NACK is returned to MW at sender.
+\textbar \btext{Sliding Window ProtocolTCP}
+prevent receiver buffer to overflow:
+sending side may only have a set number of unacknowledged messages (the sliding window):
+Receiver sends out ack,
+SW size is determined statically or dynamically
+Window size < buffer size (receiver buffer never overflows),
+Window size > buffer size( Potential for higher throughput but risk of buffer overflow
+,Use flow control (dynamically adjusting the window size))
+\textbar \rtext{Queuing}:message passing + message buffering
+\textbar \btext{Decoupling Ser,Rer} $\rightarrow$ indirect and asy compared(via Callback = deque)
+Space de.(Ser not know Rer, but know Queue),
+Time de.(Ser Rer not same time),
+Flow de.(Ser not blocked sending$\rightarrow$non-blocking enqueue)
+\textbar \btext{MessageQueuingPatterns}
+OneToOne, OneToMany, ManyToOne, ManyToMany
+\textbar \btext{QueueManager}
+Specialized component providing queuing functionality to apps
+administrative functions(Creation and deletion of queues, Starting and stopping of queues,
+Altering properties of existing queues,Monitoring of performance, failures, and recoveries)
+, Often queue managers can be configured to forward messages to other queue managers to form a network
+\textbar \btext{TransactionQueue}recovery from failures,ACID(atomic,consistent, isolated durable)
+Enable local messaging transactions
+, Group a set of consumed \& produced messages into an atomic unit of work
+, A transaction either commits (succeeds) or aborts (fails)
+, Messages are actually received/sent if transaction commits
+, Producer side(Produced messages are retained until commit, If transaction aborts, messages are discarded)
+, Consumer side(All consumed messages are kept until commit, If transaction aborts, messages are re-delivered)
+Sending of a request and receiving a corresponding reply cannot be part of a single local messaging transaction
+\textbar \btext{Request/Reply Queue,not atomic}Request with correlationID used to match with reply at C
+C $\overset{1.Req.enq}{\rightarrow}$ ReqQue $\overset{2.Req.deq}{\rightarrow}$ S
+$\overset{3.Req.process}{\rightarrow}$ RepQue $\overset{4.Rep.deq}{\rightarrow}$ C
+\textbar \btext{Request/Reply TXQueue} local transactions:1.C RequestTX: C enqueues request.2. S TX: Server dequeues request, processes request, and enqueues reply
+3. C Reply TX: C dequeues reply
+\textbar C RequestTX once committed: Request processed exactly-once, Reply processed at-least-once
+\textbar C ReqTX\{Start enqueueRequest Commit\} $\rightarrow$ Req.Que 
+$\rightarrow$ S TX\{Start dequeueRequest enqueueReply Commit\} $\rightarrow$ Rep.Que 
+$\rightarrow$ C RepTX\{Start dequeueReply Commit\}
+
+C checks queues(Request is either in request queue or Request is currently processed by the server or Reply is in the reply queue)
+, Actions taken in case of abort(If Client Request TX aborts, enqueuing of request is undone,
+If Server TX aborts, dequeuing of request and enqueuing of reply is undone,
+If Client Reply TX aborts, dequeuing of reply is undone)
+\textbar \btext{C crash}
+1. C ReqTX not commit $R \neq R_e$ $\rightarrow$ No message in any queue, old $R_e$ in QM
+2. C ReqTX committed but S TX not $\rightarrow$ Req in ReqQue or being processed by S,
+3. S TX committed but C RepTX not $\rightarrow$ Reply in RepQue(nonempty),
+4. C RepTX committed $R \neq R_d$ $\rightarrow$ No message in any queue.successful
+Persistent storage at C and queue manager required:
+C marks each req with ID, QM stores IDs of the last enqueued request $R_e$
+and of the last dequeued reply $R_d$, updated after commits.
+R:ID of the most recent request by the C (stored by the client in local persistent storage):
+C processes reply, if reply queue is non-empty (R = $R_e$ but QM’s and C's Reply IDs do not match)
+, C checks reply queue for reply and waits (if necessary)
+\btext{Distributed TXQueuing} Two-Phase Commit(2PC):Only atomicity
+
+1.Prepare (to commit, voting phase)
+(Each participant votes to commit or to abort the TX,
+Once a participant has voted to commit, it can no longer abort the TX unilaterally)
+2.Commit(completion phase)
+(Participants actually commit, after consensus has been reached that all participants are prepared.
+Otherwise, all participants abort)
+\btext{Code} \lstinline{ChannelFactory cf = new ChannelFactory();Producer p;Consumer c;}
+init():  
+\lstinline{cf.setHost("broker.tum.de");cf.queueDeclare("req\_q", Persistent); cf.queueDeclare("res\_q", Persistent); p = cf.newProducer("req\_q"); c = cf.newConsumer("res\_q");//for server change p and c, C S different init()}
+\btext{RRQueue} Client: 
+send(byte[] msg):
+\lstinline{p.enqueue(msg);}
+byte[] receive():
+\lstinline{return c.dequeue();}
+\textbar Server: run()
+\lstinline{while(true) byte[] req = c.dequeue(); try Database.store(req); p.enqueue('ACK'.toBytes()) catch(e) p.enqueue('ERROR'.toBytes());}
+\btext{Correlation}
+Client:
+\lstinline{Hashmap<Guid, byte[]> intermediate = new Hashmap<Guid, byte[]>(); Hashmap<Guid, Correlation> correlations = new Hashmap<Guid, Correlation>();// two also for Broker}
+run():
+\lstinline{Thread.start(new Thread() void run() while(True) Delivery d = c.dequeue();/*at broker responseConsumer.dequeue();*/ if(delivery != null) Guid g = d.getGuid(); if(intermediate.containsKey(g) Correlation cor = new Correlation(g, intermediate.get(g),d.getMessage()); intermediate.remove(g); cor.add(g, correlation);/*at Broker clientQueues.get(guid.getClientName()).enqueue(g, cor.toBytes());*/}
+send(byte[] msg):
+\lstinline{Guid g = Guid.generate(); p.enqueue(g,msg); intermediate.add(g, msg);//not in Broker C}
+\textbar Server: run()
+\lstinline{while(true) Delivery req = c.dequeue(); try Database.store(req); p.enqueue(req.getGuid(), 'ACK'.toBytes()) catch(e) p.enqueue(req.getGuid(),'ERROR'.toBytes());}
+\btext{Broker}
+Client: \lstinline{String clientName;cf.queueDeclare('request_queue_broker');cf.queueDeclare('client_queue_'+clientName);}
+void receive():
+\lstinline{Delivery d = c.dequeue(); if(d != null) Guid g = d.getGuid(); Correlation cor = new Correlation(); cor.fromBytes(d.getMessage());}
+\textbar Broker:
+\lstinline{List<String> clients = new ArrayList<String>(); List<String> servers = new ArrayList<String>(); Map<String, Producer> serverQueues = new HashMap<String, Producer>(); Map<String, Producer> clientQueues = new HashMap<String, Producer>();}
+init():
+\lstinline{clients.add("c1"); servers.add("s1");/*multi add*/ cf.queueDeclare("request_queue_broker", Persistent); requestConsumer = cf.newConsumer("response_queue_broker"); cf.queueDeclare("response_queue_broker", Persistent); responseConsumer = cf.newConsumer("response_queue_broker"); for(String server : servers) /* also for client*/ String queueName = "server_queue_"+server; /*clinet_q*/ cf.queueDeclare(queueName, Persistent); serverQueues.put(client, cf.newProducer(queueName));/*clineQueues*/}
+run():
+\lstinline{Thread.start(new Thread() void run() int count = 0; while(True) Delivery d = requestConsumer.dequeue(); if(d != null) intermediate.add(d.getGuid(), d.getMessage()); serverQueues.get(count\%servers.size()).enqueue(d.getGuid(),d.getMessage()); count++; // with Func Cor Client run}
+\textbar Server
+\lstinline{String sName;}
+run():
+\lstinline{while(True) Delivery d = c.dequeue(try Database.store(request); p.enqueue(d.getGuid(), 'ACK'.toBytes()); catch(e) p.enqueue(d.getGuid(), 'ERROR'.toBytes());}
+\textbar \btext{TXQueue} Client:
+\lstinline{Queue<byte[]>messageBuffer = new Queue<byte[]>;Queue<Delivery> resultBuffer = new Queue<Delivery>;}
+request():
+\lstinline{guid = Guid.generateRandom();file = newFile('path/requestFile');file.write(guid);startTX message = messageBuffer.get(); producer.enqueue(guid, message); commitTX}
+reply():
+\lstinline{startTX Delivery delivery = consumer.dequeue(); resultBuffer.put(delivery); commitTX;}
+recovery():
+\lstinline{file = newFile("path/requestFile"); Guid R = file.readLastEntry(); Guid Re = cf.getLastEnqueued("request_queue"); Guid Rd = cf.getLastDequeued("reply_queue"); if(R != Re) requestTX() else if(R != Rd) while(cf.getQueueSize('reply_queue') == 0) Thread.sleep(500); replyTX() else /*nothing*/ spawn(while (true))}
+\textbar Server: \lstinline{processTX startTX Delivery delivery = consumer.dequeue(); producer.enqueue(delivery.getCorrId(), 'ACK'); commitTX;}
+

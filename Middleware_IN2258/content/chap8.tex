@@ -1,0 +1,143 @@
+\section{S-Side Architecture}
+\btext{Thread}: has own Stack, Instruction pointer,Processor State(Register). multiple included in proc.
+\textbar
+\btext{Process}:running program as set of Threads(
+Binary image loaded into memory,
+Instance of virtualized memory,
+Resources as open files, sockets,
+Security context as associated user,
+Thread as Unit of activity of process)
+\textbar
+\btext{Single‐threaded Pro.} One instance of virtual memory
+\textbar
+\btext{Multi‐threaded Pro.}: One instance + th. share same memory address space(ob)
+\textbar
+\btext{Synchronisation}:sharing same address(obj), Read/Write access must be synchronized(Mutex, Locks, Semaphores)
+\bluetext{Lock:}\lstinline{Lock l; l.lock(); /*critical section, can be Deadlock*/ l.unlock();}
+\bluetext{Mutal Exclusion:}Critical sections of th.s not overlap
+\bluetext{Freedom from deadlock, Freedom from starvation}
+\textbar
+\btext{Th. State} Created $\rightarrow$ Waiting(Scheduled or unscheduled) $\leftrightarrow$
+Swapped outWaiting(No enough memory), Running $\rightarrow$ Terminiated, Blocked(Blocking IO)
+$\rightarrow$ Waiting(IO finish) Blocked $\leftrightarrow$ Swapped out andBlocked(No enough memory)
+\textbar
+\btext{API}: 
+\lstinline{public class WorkThread extends Thread{}
+\lstinline{public ConnectionHandleThread(Parameter params)}
+\lstinline{@Overridepublic void run(){Computation();}
+\lstinline{/*usage*/Thread t = new WorkThread(params); th.start(); Thread.sleep(1000);/*current thread */ th.getState();/*NEW, RUNNABLE, BLOCKED, WAITING, TERMINATED, TIMED_WAITING*/ th.setPriority(para); th.yield();/*give current use of processor to other th.*/}
+\textbar
+\btext{Amdahl‘s law}: maxium theoretical speedup using multiple processors
+$T(n)=T(1)*(B+\frac{1}{n}(1-B))$ n:\# processor, $B\in[0,1] serial,nonparallizable$,
+speedup:$S(n)=\frac{T(1)}{T(n)}=\frac{1}{T(n)}$
+\textbar
+\btext{Overload}:
+1.Transient ov.(Short spikes in requests which ov. the S temporarily)
+2.Continous ov.(Incomming rate exceeds the capacity of the S)
+3.Methods to tackle ov.(Refuse requests after certain queue length,Add capacity)
+\textbar
+\btext{Concurrency Models}
+1.\btext{Thread‐based conc.}
+(One request is completely handled by a single th.
+time of request, same th. is responsible until the response is returned
+If request is blocked (due to a DB access), the th. is blocked
+2.\btext{Event‐based conc.}\redtext{not th. based}
+Request in Network/HDD$\rightarrow$EventHandler$\rightarrow$\# FSM = \# Steps(th.s)$\rightarrow$Response
+(\btext{--}:
+Only non‐blocking(async) I/O operations used,
+Code less modular,nonreusable,
+Complex control flow(FSM, flags), debugging
+OS support like async I/O libraries)
+(A th. processes a request until th. blocked.
+When th. blocked, the th. continues with the next requests,
+Once a th. becomes unblocked, it gets enqueued in the list of ready tasks.
+Scalar code separated in micro tasks.
+\redtext{Finate State MachinesFSM}(Java NIO)to track state)
+C socket created $\rightarrow$ \bluetext{th1 accept connection} register 'C socket event'
+\textbar
+requests from C socket $\rightarrow$ \bluetext{th2 lookupDB} register 'query done event'
+\textbar
+QueryDone $\rightarrow$ \bluetext{th3 send 1MB to client} register 'data sent event'
+\textbar
+data sent $\rightarrow$ \bluetext{th4 Cancel connection} 
+\textbar
+\btext{Single‐threaded S = Iterative S}:
+S only single worker th.(do all also I/O), \bluetext{Thread‐based conc.}
+Waits till a new request from Network is in input queue, if empty
+,Dequeues the next request
+,Computes the result of the request
+,Generates response to Network
+,When blocked due to I/O, thread also blocks(I/O read disk to memory)
+\btext{++}:Simple programming, cache locality(one request in cache)
+\btext{--}:Insufficient use of resources, Limited scalability(reject requests if too many)
+\textbar
+\btext{Multi‐threaded S}:
+S with multiple worker th.(same way as single th. wait \dots block
+OS can schedule non‐blocked threads(get nonblocked th. from pool),
+more threads than cores since a certain percentage of I/O is assumed
+\btext{++}:
+Programming abstraction(Dividing up work and assigning to a th.),
+Parallelism(better throughput),
+Responsiveness(Doing heavy operations in background, while UI stays responsive),
+Blocking I/O( When blocking I/O, other th. continue to work),
+Contex switching(Switching costs from one thread to another within the same process is cheaper than process‐to‐process context switching),
+Memory savings(Th. to share memory, yet utilize multiple units of execution)
+\textbar
+\btext{One th. per request/Connection}:scheduled by operations,
+Request in Network$\rightarrow$InputQueue$\rightarrow$Dispatcher
+(starts one th. per request,when response sent, th. ends)$\rightarrow$Response to Network
+\btext{++}:Simplified programming 
+\btext{--}: Too many th. $\rightarrow$ thread‐starvation(too little CPU‐time)
+, cost of Starting/Removing th. 
+, Not ideal for highly parallel S
+\lstinline{ServerSocket ss = new ServerSocket(); ss.bind(new InetSocketAddress("127.0.0.1", port)); while (true) Socket ss = serverSocket.accept(); Thread t= new ConnectionHandleThread(kv, ss); t.start();}
+\btext{+}
+\lstinline{public class ConnectionHandleThread extends Thread { public ConnectionHandleThread(KVStore store, Socket clientSocket){... @Override public void run() {BufferedReader in = ... clientSocket.getInputStream(); PrintWriter out = ... clientSocket.getOutputStream(); String firstLine; while ((firstLine = in.readLine()) != null) {String res = kv.process(firstLine);out.write(res);out.flush();}
+\textbar
+\btext{Abstracting Th.}: deadlock free, starvation free
+\btext{Abstractions:}
+\bluetext{Thread pool, Event based concurrency, SEDA, Actor model of concurrency, Reactive programming}
+\textbar
+\btext{Th. pool}managed collection of available th.s,
+size as maximum(eg number of CPU cores),
+Completes tasks in parallel,
+Reuses th. for multiple tasks
+\btext{Multi‐threading with th. pool}
+\redtext{optimal size} depends on \# cores, \# blocking of I/O operations
+\textbar
+Request in Network$\rightarrow$InputQueue$\rightarrow$Scheduler(Thread pool with size)$\rightarrow$Response to Network
+\lstinline{ExecutorService es= Executors.newFixedThreadPool(4);while (true){Socket serverSocket= serverSocket.accept();es.submit(new ConnectionHandlerRunnable(kv, clientSocket));}
+\bluetext{++ RUNNABLE above in One th. per request/Connection}
+\textbar
+\btext{Scheduling Algorithm}:Most cache efficient to assign tasks to th.s in pool, \redtext{Two main paradigms}:Work sharing,Work stealing
+\redtext{Work Sharing Algo.}When th. created, scheduler moves work of other th. to new th.
+\btext{--:}Comm. between cores, Cache misses
+\textbar
+\redtext{Work stealing algo.}
+Under-utilized processors steal work from busy processors(The migration of threads occurs less frequently with work stealing than with work sharing)
+\redtext{++:}Maintain th. on same CPU(data locality $\rightarrow$ better cache usage, Minimize comm. between th
+\textbar
+\btext{Futures}:result of asyn. computation in thread pool
+\lstinline{/*result in future obj*/FutureTask<LinearRegressionResult> future = new FutureTask<Integer>(new Callable<String>() {public Integer call() {List<Doubles> lr = getDailyTurnover(..); return calcLinearRegression(lr);); threadpool.execute(future);}
+\textbar
+\btext{SEDA}Staged event‐driven architecture, a network of stages connected by event queues
+\btext{++:}
+Support massive concurrency,
+Simplify the construction of services(Provide abstractions),
+Enable introspection(Adapt behavior to changing load conditions),
+Support self‐tuning resource managment,
+Server is created out of many SEDA stages
+\textbar
+\btext{Actor}:No access to shared memory(No locks,no deadlock), Scheduled on top of threads
+\textbar
+\btext{Reactive Programming}: oriented around data flows and propagation of change(Dependency graph)
+\textbar \textbar \textbar
+\btext{App S}:  a component‐based product that resides in the middle‐tier of a server‐centric architecture.
+It provides middleware services for security and state maintenance, along with data access and persistence.
+\bluetext{Java:}WildFly, Websphere
+\textbar
+\btext{EJB}:
+Standard component architecture,
+Distributed business applications(Support development, deployment and use of web services),
+Write once, run in all application containers
+\btext{++:}Developer not to care about Fail‐over,Clustering,(Distributed) Transaction handling,Databases,Security,Deployment

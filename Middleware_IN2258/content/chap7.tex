@@ -17,3 +17,13 @@ D (Deterministic, All customers have the same value),
 G (General, Any arbitrary probability distribution)
 \textbar
 M/M/1: Infinite population of customers, Infinite q.capacity, FIFO
+\textbar
+Exponential distribution: $f(x)=\lambda e^{-\lambda x}$, mean$= 1/\lambda$
+\textbar
+Poisson arrival process(arrivalProcess): $P_n(t) = \frac{(\lambda t)^n}{n!}e^{-\lambda t}$,
+\textbar
+Traffic intensity (occupancy): $\rho = \lambda/\mu$, n customers: $Prob[n] =\rho^n(1-\rho)$, empty: $Prob[n=0]=1-\rho$
+\textbar
+Mean \# customers: $N = \frac{\rho}{1-\rho} = \frac{\lambda}{\mu - \lambda} = L$
+\textbar
+Total waiting time (including service time): $T=\frac{1}{\mu - \rho}$

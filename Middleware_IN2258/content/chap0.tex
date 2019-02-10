@@ -1,12 +1,73 @@
-\section{Chap0}
-\subsection*{8Fallacies}
-1.Network Reliable. |PowerSupply, HardDisk, NodeFailures, Configurations, Bugs| \textbf{Effect:}applicationHangs, crashes |\textbf{Countermeasures:} Redundancy HW\&SW systems,middleware \&application; CatchExceptions, CheckCodes, React;Retry ConnectingUponTimeouts
-2.LatencyZero.|Latency:timeForData Transfer(speedOfLight)\& Bandwidth:howMuchData transferred
-3.Bandwidth is infinite.
+\section{Introduction}
+\redtext{Enterprise SY architecture:}Cs, Web S, APP Ss, MsgQueue, Pub/Sub SY, DBs 
+\\ 
+\redtext{Distributed APP} developed on \bluetext{sockets}.
+(Fallacies,
+Interoperability in spite of heterogeneity,
+Data representation and encoding,
+Parameter passing convention calling remote procedures,
+Atomic execution of TX,
+Enable APP integration,
+Data persistence)
+% \textbar \textbar \textbar
+\\
+\redtext{Middleware} as layer between \bluetext{transport \& application layer}
+or \bluetext{Above OS and below APP}. 
+comprises \bluetext{services and abstractions}(RMI, Messaging, PubSub,TX,Naming) that facilitate the
+design, development, and deployment of distributed APP in
+\bluetext{heterogeneous, networked environments}.
+Deals with interoperability
+\begin{CJK*}{UTF8}{gbsn}
+\bluetext{互通性}
+\end{CJK*}, SY integration
+\textbar 
+C request/response $\leftrightarrow$ Middleware $\leftrightarrow$ S. 
+\textbar
+All Computers \bluetext{share single distributed APP and Middleware.}
+\\
+\redtext{Heterogeneity}:
+Computer architecture(big, little endian), 
+OS(Comm. sub-system), 
+Host and network representation of data, 
+Programming language(Representation of characters)
+\\
+\redtext{Ilities:}
+Reliable; 
+Fault-tolerant; 
+Highly available; 
+Recoverable; 
+Consistent; 
+Scalable; 
+Predictable pref.; 
+Secure; 
+Heterogeneous; 
+Open
+\\
+\rtext{8 Fallacies}
+\rtext{1.Network Reliable} 
+\bluetext{Assumptions:}Power Supply, Hard Disk, Node Failures, Config., Bugs
+\bluetext{Effect:}APP hangs, crashes 
+\bluetext{Countermeasures:}
+Redundancy HW\&SW systems,middleware \&application; 
+Catch Exceptions; 
+Check Codes, React; 
+Retry After Timeouts;
+pos. neg. ACK; 
+Identify \& ignore duplicates; 
+idempotent operations
+\rtext{2.Latency\begin{CJK*}{UTF8}{gbsn}延迟\end{CJK*} Is Zero}
+time For Data Transfer(speed Of Light); 
+Bandwidth:how Much Data transferred (bit/s)
+\textbar
+Local Call: Push and a Jump to Subroutine;
+SY Call: OS, 100s of assembly;
+Call across LAN: SY calls on caller $+$ callee $+$ network latency;
+Call across WAN: transmission delay
+\redtext{3.Bandwidth is infinite.
 4.The network is secure.
 5.Topology doesn't change.
 6.There is one administrator.
 7.Transport cost is zero.
-8.The network is homogeneous
-
-
+8.The network is homogeneous}
+\\
+\bluetext{Standardization}: Official:ISO, ITU, DIN, Semi-official: IEEE, W3C, OpenGroup

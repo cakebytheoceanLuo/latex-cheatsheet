@@ -1,0 +1,147 @@
+\section{Service Orchestration}
+\rtext{Business Process}: set of linked activities which realise business goal
+\redtext{Bus. Pro. vs Programs}
+Granularity(Based on activities, Programming in the large),
+Control flow(Explicitly defined, Easy understand),
+Flexibility(change),
+Execution(call third-party webservices, Scheduled by process engine)
+\bluetext{VS}
+Granularity(Based on instructions, Programming in the small)
+Control flow(Implicitly defined, Not easy understand)
+No Flexibility(Hard-coded)
+Execution(Invoke instructions locally, Scheduled by operating system)
+\rtext{BPEL, WS-BPEL}:Web Services Business Process Execution Language(XML based),
+to orchestrate loosely coupled services(to model \bluetext{SOA's Business processe}),
+using web services running at bus. proc. execution engine (ODE),
+Lacks possibility for formal verification compared to \redtext{FSP}
+\redtext{Components}:
+Activities,
+State handling,
+Control structures,
+Exception handling,
+Partner links,
+Parallism,
+Dead path elimination
+\redtext{Related Standards}
+\bluetext{SOAP}
+Simple Object Access Protocol,
+Comm. platform in XML
+\bluetext{WSDL}
+Web Service Definition Language,
+set of endpoints operating on messages,
+Operations and messages described abstractly and bound to concrete network protocol
+\bluetext{UDDI}
+Universal Description, Discovery and Integration,
+Services registered, published and reused by other organizations,
+App store for webservices
+
+\rtext{Service-Oriented ArchitectureSOA}
+technique that involves the interaction between loosely coupled services that function independent
+\redtext{Principles}:
+Loose coupling,
+Service contract $\rightarrow$ WSDL,
+Abstraction of underlying logic,
+Autonomy,
+Reusability,
+Composability $\rightarrow$ WS-BPEL,
+Interoperability,
+Discoverability $\rightarrow$ UDDI
+\textbar
+\btext{BPMN vs BPEL}
+Business friendly,
+intuitive,
+process oriented,
+Swimlanes that represent organizational units,
+User friendly data manipulations,
+include human tasks,
+expose web service UI
+\redtext{VS}
+technical,
+manipulated with XPath expressions,
+xpress orchestrations,
+error handling,
+compensating actions
+\textbar
+\btext{Service composition}
+\bluetext{conceptual model:} Servers exchanged Msg via out-port, in-port.
+\bluetext{design methodology:}
+\redtext{1Bottom-up:}
+Service providers develop and publish services
+Service consumers discover and select services
+Service consumers compose selected services
+\redtext{2Top-down:}
+Service consumer develop a global process
+Service consumers decompose the global process into subprocesses
+Service consumers select/develop services to implement subprocesses
+\textbar
+\rtext{Service orchestration}
+\bluetext{Local perspective},
+Describe control from one party‘s behavior(perspective),
+\bluetext{WS-BPEL} as Standard,
+Executable processes which interact(message level) with web services
+(Service internal / external),
+Business processes(business logic $+$ task execution order,
+span multiple apps and organizations,
+Define a long-lived transactional multistep process model)
+\textbar
+\rtext{Service choreography}
+Global perspective,
+Describe the global interactions among all the parties,
+\bluetext{WS-CDL} as Standard
+Tracks the message sequences among multiple source and sinks,
+Each involved party describes its part of the interaction
+\textbar
+\rtext{Orchest. vs Choreo.} Two Orchest.(Web Service) sending each other(Choreo.) \bluetext{Request, ACK, Accept, ACK}
+\textbar
+\rtext{Formal Methods:}
+Modeling approaches, State machine verification,
+(Finite state processes (FSP), BPEL $\rightarrow$ LTS $\rightarrow$ FSP),
+to represent and reason about \bluetext{Complexity of Concurrency Sy},
+Performance optimization,
+Deadlock detection, 
+dead path elimination
+\textbar
+\rtext{FSP}
+Labeled Transition System(
+Abstract machine to study computation
+Contains a set of states and transitions between states)
+\textbar
+\rtext{BPEL $\rightarrow$ FSP}
+\bluetext{Activitiy}:
+<invoke partner='p1' operation='o1' /> $\rightarrow$ INVOKE = (invoke\_p1\_o1 -> END).
+<receive partner='p2' operation='o2' /> $\rightarrow$ RECEIVE = (receive\_p2\_o2 -> END).
+<reply partner='p1' operation='o1' />  $\rightarrow$ REPLY = (reply\_p1\_o1-> END).
+\bluetext{Sequence}:
+<sequence>
+\begin{CJK*}{UTF8}{gbsn}
+  \redtext{见上面BPEL三个}
+\end{CJK*}
+</sequence> 
+$\rightarrow$
+\begin{CJK*}{UTF8}{gbsn}
+\redtext{见上面FSP三个}
+\end{CJK*}
+SEQUENCE = INVOKE; RECEIVE; REPLY; END. 
+$0 \rightarrow 1\rightarrow 2 \rightarrow E$
+\bluetext{Flow: Parallel Activity}
+<flow>
+\begin{CJK*}{UTF8}{gbsn}
+\redtext{见上面BPEL三个}
+\end{CJK*}
+</flow>
+$\rightarrow$
+\begin{CJK*}{UTF8}{gbsn}
+\redtext{见上面FSP三个}
+\end{CJK*}
+|| FLOW = (INVOKE || RECEIVE || REPLY).
+$0 \rightarrow 1\rightarrow 2 \rightarrow E \leftarrow 4 \leftarrow 5 \leftarrow 6 \leftarrow 7$
+\begin{CJK*}{UTF8}{gbsn}
+\redtext{而且每点出3种Activity}
+\end{CJK*}
+\textbar
+\rtext{Deadlock Detection}:
+when two or more competing activities are each waiting for the other to finish,
+\redtext{in FSP: a non-final-state with no outgoing arcs, like A sends to B, B sends to A}
+\bluetext{Assumption: Sync Comm}
+$!m_1$: Send a Msg of type m,
+$?m_1$: Receive a Msg of type m

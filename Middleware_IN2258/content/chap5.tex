@@ -47,148 +47,287 @@ FIFO(for one sender),Causal,Total(for all sender);
 All Msg delivery
 \redtext{OR}
 Fast incomplete Msg delivery
-\bluetext{Synchronous vs. asynchronous sending
-Synchronous vs. asynchronous receiving
-Buffering of messaging $\rightarrow$ Queuing}
-\textbar \btext{SynchronousComm}
-Sender blocked until receive on receiver-side completed,
-Receiver blocked until sendon sender-side completed,
-Syn equalizes sender/receiver speeds $\rightarrow$ Deadlock,
-\btext{+:}
-Sender knows that message was received,
-Only single message needs to be buffered,
-Synchronizes sender and receiver operating at different speeds
-\btext{-:}
-Sender and receiver are coupled (i.e., need to be up at the same time),
-Sender and receiver are blocked, which reduces potential for parallelism and potential for deadlock
-\textbar \btext{AsyCom}
-Send not blocked; MW buffers message on sender-side or on receiver-side,
-SenderBuffer enables to temporarily send faster than message transmission,
-Receiver buffer enables to temporarily receive more messages than can be processed,
-Buffers temporarily mitigate speed variances of sender and receiver, but not permanently!
-\btext{+:}
-Sender and receiver are loosely coupled, not same time
-More potential for parallelism than in synchronous case
-\btext{-:}
-Sender does not know if or when a message was received,
-Buffers full,
-Dev. Debug. complex
-\textbar \btext{MessageBuffering}
-BufferOverflow
-send buffer full $\rightarrow$
-Sender blocks,
-A buffered message is over-written,
-Exception, error returned to sender
+\bluetext{3.Syn vs. Asyn send\textbackslash receive:}
+\bluetext{4.Buffering Msg $\rightarrow$ Queuing}
+\greentext{Transient vs Persistent Msg:}
+Msg not stored
+\greentext{VS}
+Msg stored lifetime of sender\&receiver 
+until revoked, purged, queuing, Msg queue
 \textbar
-receive buffer full $\rightarrow$
-Message dropped,
-A buffered message is over-written,
-A NACK is returned to MW at sender.
-\textbar \btext{Sliding Window ProtocolTCP}
-prevent receiver buffer to overflow:
-sending side may only have a set number of unacknowledged messages (the sliding window):
-Receiver sends out ack,
-SW size is determined statically or dynamically
-Window size < buffer size (receiver buffer never overflows),
-Window size > buffer size( Potential for higher throughput but risk of buffer overflow
-,Use flow control (dynamically adjusting the window size))
-
-
-
-
-\rtext{Queuing}:message passing + message buffering
-\textbar \btext{Decoupling Ser,Rer} $\rightarrow$ indirect and asy compared(via Callback = deque)
-Space de.(Ser not know Rer, but know Queue),
-Time de.(Ser Rer not same time),
-Flow de.(Ser not blocked sending$\rightarrow$non-blocking enqueue)
-\textbar \btext{MessageQueuingPatterns}
+\orangetext{Blocking Send\&Receive Semantics}
+\orangetext{Blocks send call until Msg arrived:}
+local middleware
+\greentext{\textbackslash}
+remote middleware
+\greentext{\textbackslash}
+receiving process
+\greentext{\textbackslash}
+processed by receiving process;
+\orangetext{Blocks receive call until:}
+Msg available use non-blocking polling
+\greentext{\textbackslash}
+Timeout
+\greentext{\textbackslash}
+Msg message received
+\textbar
+\orangetext{Syn.Comm.}
+Sender blocked until Re. done,
+Receiver blocked until Se. done,
+Syn equalizes Se.Re. speed
+$\rightarrow$
+Deadlock(both send wait),
+\btext{++:}
+Se. knows Msg was received,
+Only one Msg buffered,
+Synchronizes Se. and Re. operating diff. speeds
+\btext{--:}
+coupled (at same time),
+blocked(deadlock, no paral.)  
+\orangetext{Asy.Comm.}
+Send not blocked; 
+\greentext{MW buffers Msg} on Se.\textbackslash Re.,
+\greentext{SenderBuffer} send faster > transmission,
+\greentext{ReceiverBuffer} receive more Msg > processing,
+$\rightarrow$
+Buffers temporarily(not permanently) mitigate speed difference
+\btext{++:}
+ring buffer,
+loosely coupled, not same time,
+parallelism
+\btext{-:}
+Se. know Msg received,
+Buffers overflow,
+Dev. Debug. complex
+\redtext{Msg Buffering}
+\bluetext{send buffer full}
+$\rightarrow$
+Se. block,
+buffered Msgover-written,
+Return Exception, error
+\textbar
+\bluetext{receive buffer full}
+$\rightarrow$
+Msg dropped,
+buffered Msg over-written,
+return NACK to MW at Se..
+\redtext{Sliding Window Protocol TCP}
+prevent Re. buffer overflow:
+send side may only have number of Un-ACK Msg (sliding window):
+Re. send ACK,
+SW size determined statically or dynamically
+$\rightarrow$
+size < buffer size (nooverflows),
+size > buffer size(high throughput but can overflow
+flow control (dynamically adjusting the window size)
+\redtext{Syn Comm via Asy MW:}
+Se. wait for Re. ACK
+\\
+%
+%
+%
+\mysubsection{Queuing}
+\greentext{Msg passing\bluetext{+}Msg buffering}
+\redtext{Dequeue:}
+\bluetext{Remove:}
+remove Msg if dequeued
+\bluetext{Browse:}
+still available for other Re. if dequeued
+\redtext{Decoupling Ser,Rer}
+$\rightarrow$
+indirect and asy comm.(asyn received via Callback = deque)
+\bluetext{Space de.}Se not know Re, but know Queue,
+\bluetext{Time de.}Se Re not same time,
+\bluetext{Flow de.}Sending not blocked$\rightarrow$non-blocking enqueue
+\redtext{Msg Queuing Pattern:}
 OneToOne, OneToMany, ManyToOne, ManyToMany
-\textbar \btext{QueueManager}
-Specialized component providing queuing functionality to apps
-administrative functions(Creation and deletion of queues, Starting and stopping of queues,
-Altering properties of existing queues,Monitoring of performance, failures, and recoveries)
-, Often queue managers can be configured to forward messages to other queue managers to form a network
-\textbar \btext{TransactionQueue}recovery from failures,ACID(atomic,consistent, isolated durable)
-Enable local messaging transactions
-, Group a set of consumed \& produced messages into an atomic unit of work
-, A transaction either commits (succeeds) or aborts (fails)
-, Messages are actually received/sent if transaction commits
-, Producer side(Produced messages are retained until commit, If transaction aborts, messages are discarded)
-, Consumer side(All consumed messages are kept until commit, If transaction aborts, messages are re-delivered)
-Sending of a request and receiving a corresponding reply cannot be part of a single local messaging transaction
-\textbar \btext{Request/Reply Queue,not atomic}Request with correlationID used to match with reply at C
-C $\overset{1.Req.enq}{\rightarrow}$ ReqQue $\overset{2.Req.deq}{\rightarrow}$ S
-$\overset{3.Req.process}{\rightarrow}$ RepQue $\overset{4.Rep.deq}{\rightarrow}$ C
-\textbar \btext{Request/Reply TXQueue} local transactions:1.C RequestTX: C enqueues request.2. S TX: Server dequeues request, processes request, and enqueues reply
-3. C Reply TX: C dequeues reply
-\textbar C RequestTX once committed: Request processed exactly-once, Reply processed at-least-once
-\textbar C ReqTX\{Start enqueueRequest Commit\} $\rightarrow$ Req.Que 
-$\rightarrow$ S TX\{Start dequeueRequest enqueueReply Commit\} $\rightarrow$ Rep.Que 
-$\rightarrow$ C RepTX\{Start dequeueReply Commit\}
-
-C checks queues(Request is either in request queue or Request is currently processed by the server or Reply is in the reply queue)
-, Actions taken in case of abort(If Client Request TX aborts, enqueuing of request is undone,
-If Server TX aborts, dequeuing of request and enqueuing of reply is undone,
-If Client Reply TX aborts, dequeuing of reply is undone)
-\textbar \btext{C crash}
-1. C ReqTX not commit $R \neq R_e$ $\rightarrow$ No message in any queue, old $R_e$ in QM
-2. C ReqTX committed but S TX not $\rightarrow$ Req in ReqQue or being processed by S,
-3. S TX committed but C RepTX not $\rightarrow$ Reply in RepQue(nonempty),
-4. C RepTX committed $R \neq R_d$ $\rightarrow$ No message in any queue.successful
-Persistent storage at C and queue manager required:
-C marks each req with ID, QM stores IDs of the last enqueued request $R_e$
-and of the last dequeued reply $R_d$, updated after commits.
-R:ID of the most recent request by the C (stored by the client in local persistent storage):
-C processes reply, if reply queue is non-empty (R = $R_e$ but QM’s and C's Reply IDs do not match)
-, C checks reply queue for reply and waits (if necessary)
-\btext{Distributed TXQueuing} Two-Phase Commit(2PC):Only atomicity
-
-1.Prepare (to commit, voting phase)
-(Each participant votes to commit or to abort the TX,
-Once a participant has voted to commit, it can no longer abort the TX unilaterally)
-2.Commit(completion phase)
-(Participants actually commit, after consensus has been reached that all participants are prepared.
-Otherwise, all participants abort)
-\btext{Code} \lstinline{ChannelFactory cf = new ChannelFactory();Producer p;Consumer c;}
-init():  
-\lstinline{cf.setHost("broker.tum.de");cf.queueDeclare("req\_q", Persistent); cf.queueDeclare("res\_q", Persistent); p = cf.newProducer("req\_q"); c = cf.newConsumer("res\_q");//for server change p and c, C S different init()}
-\btext{RRQueue} Client: 
-send(byte[] msg):
+\redtext{Queue Manager:}
+Specialized component to queuing functionality to apps
+administrative functions(create, delect, start, stop of queue)
+\redtext{Multiple Consumer Queue Msg Property:}
+\bluetext{Priority:}
+\orangetext{Static:}
+High first
+\redtext{OR}
+Weighted fair scheduling:\begin{CJK*}{UTF8}{gbsn}交换 a:weight2 abacabac\end{CJK*}
+\orangetext{Dynamic:}
+Priority change,
+Earliest deadline first EDF,
+Least laxity first LLF(min time left to DDL)
+\bluetext{Earliest dequeue time:}
+before it Msg not dequeued
+\bluetext{Expiration time:}
+Msg deleted if expires
+\bluetext{Correlation identifier:}
+match req with reply
+\\
+%
+%
+\redtext{TX Queue}
+fail recovery;
+\greentext{ACID atomic consistent isolated durable};
+Enable local Msg TX;
+commits succeeds or aborts fails;
+Msg received/sent if commits;
+\bluetext{Producer side}
+Msg kept until commit, If aborts, Msg discarded;
+\bluetext{Consumer side}
+All consumed Msg kept until commit, If aborts, re-delivered;
+%
+\redtext{Request/Reply Queue,not atomic}
+\orangetext{Req with correlationID} to match reply at C
+C
+\bluetext{1.Req Enque}
+$\rightarrow$
+Req.Que
+\bluetext{2.Req.Deq}
+$\rightarrow$
+S
+\bluetext{3.Req.process Rep.Enque}
+$rightarrow$
+Rep.Que
+\bluetext{4.Rep.Deq}
+$\rightarrow$
+C
+%
+\redtext{Request/Reply TX Queue}
+local TX:
+\bluetext{1.C RequestTX:}
+C enq req.
+\bluetext{2.S TX:}
+S deq req, processes, enq reply
+\bluetext{3.C Reply TX:}
+C deq. reply
+\orangetext{
+C RequestTX committed:
+Req. process exactlyOnce,
+Reply process atLeastOnce}
+\bluetext{R\textbackslash R TX workaround:}
+C ReqTX
+\{Start enqueueRequest\bluetext{1.enq.} Commit\}
+$\rightarrow$
+Req.Que 
+$\rightarrow$
+S TX\{Start dequeueRequest\bluetext{1} enqueueReply\bluetext{2.enq.} Commit\}
+$\rightarrow$
+Rep.Que 
+$\rightarrow$
+C RepTX\{Start dequeueReply\bluetext{2} Commit\}
+\textbar
+\orangetext{C checks queues}
+Req. in req. que.
+\redtext{OR}
+Req. currently processed by S
+\redtext{OR}
+Reply in reply que.
+\orangetext{Case of Abort}
+C Request TX abort, req enq. undone;
+STX abort, req deq.\& reply enq undone;
+C Reply TX abort, reply deq undone
+\\
+\redtext{\hlgray{C crash, Recovery}}
+\hlgray{Persistent at C and queue manager:}
+\orangetext{\hlgray{C marks req with ID,
+QM store IDs of the last enqueued request $R_e$,
+the last dequeued reply $R_d$, updated after commits.
+$R$:ID of most recent request by the C (stored by C)}}:
+\bluetext{\hlgray{1.C ReqTX not commit}}
+\hlgray{
+$R\neq R_e$
+resend, Empty queues, old $R_e$ in QM}
+\bluetext{\hlgray{2.C ReqTX committed but S TX not$R_e=R\neq R_d$}}
+\hlgray{
+Req in ReqQue(req.que.size!=0,dequeue)}
+\redtext{OR}
+\hlgray{being processed by S(req.que.size=0,C wait)}
+\bluetext{\hlgray{3.S TX committed but C RepTX not}}
+\hlgray{
+Reply in Rep.Que(nonempty, R = $R_e$, QM's C's ReplyID un-match)},
+\bluetext{\hlgray{4.C RepTX committed}}
+\hlgray{
+$R=R_d$
+Successful,continue}
+\\
+\redtext{Distributed TXQueuing Two-Phase Commit 2PC:}
+Only \orangetext{Atomicity},
+Coordinator among registered nodes to achieve consensus;
+Coordinator requests all nodes to vote;
+commit, if \orangetext{all} voted to commit;
+abort, if \orangetext{one} voted to abort;
+\bluetext{1.Prepare}
+to commit, voting phase
+Once a participant voted to commit, no longer abort the TX
+\bluetext{2.Commit}
+completion phase;
+\orangetext{commit, after all participants prepared
+Otherwise all abort}
+%
+%
+%
+%
+%
+\\
+\redtext{\hlgray{Class C S}}
+\lstinline{ChannelFactory cf=new();Producer p;Consumer c;}
+\hlgray{S C init():}
+\lstinline{cf.setHost("broker.tum.de");cf.queueDeclare("req\_q", Persistent);cf.queueDeclare("res\_q", Persistent);p=cf.newProducer("req\_q");c=cf.newConsumer("res\_q");//for S change p and c, C S different init()}
+\redtext{\hlgray{R\textbackslash R Queue}}
+\hlgray{C send(byte[] msg):}
 \lstinline{p.enqueue(msg);}
-byte[] receive():
+\hlgray{C byte[] receive():}
 \lstinline{return c.dequeue();}
-\textbar Server: run()
-\lstinline{while(true) byte[] req = c.dequeue(); try Database.store(req); p.enqueue('ACK'.toBytes()) catch(e) p.enqueue('ERROR'.toBytes());}
-\btext{Correlation}
-Client:
-\lstinline{Hashmap<Guid, byte[]> intermediate = new Hashmap<Guid, byte[]>(); Hashmap<Guid, Correlation> correlations = new Hashmap<Guid, Correlation>();// two also for Broker}
-run():
-\lstinline{Thread.start(new Thread() void run() while(True) Delivery d = c.dequeue();/*at broker responseConsumer.dequeue();*/ if(delivery != null) Guid g = d.getGuid(); if(intermediate.containsKey(g) Correlation cor = new Correlation(g, intermediate.get(g),d.getMessage()); intermediate.remove(g); cor.add(g, correlation);/*at Broker clientQueues.get(guid.getClientName()).enqueue(g, cor.toBytes());*/}
-send(byte[] msg):
-\lstinline{Guid g = Guid.generate(); p.enqueue(g,msg); intermediate.add(g, msg);//not in Broker C}
-\textbar Server: run()
-\lstinline{while(true) Delivery req = c.dequeue(); try Database.store(req); p.enqueue(req.getGuid(), 'ACK'.toBytes()) catch(e) p.enqueue(req.getGuid(),'ERROR'.toBytes());}
-\btext{Broker}
-Client: \lstinline{String clientName;cf.queueDeclare('request_queue_broker');cf.queueDeclare('client_queue_'+clientName);}
-void receive():
-\lstinline{Delivery d = c.dequeue(); if(d != null) Guid g = d.getGuid(); Correlation cor = new Correlation(); cor.fromBytes(d.getMessage());}
-\textbar Broker:
-\lstinline{List<String> clients = new ArrayList<String>(); List<String> servers = new ArrayList<String>(); Map<String, Producer> serverQueues = new HashMap<String, Producer>(); Map<String, Producer> clientQueues = new HashMap<String, Producer>();}
-init():
-\lstinline{clients.add("c1"); servers.add("s1");/*multi add*/ cf.queueDeclare("request_queue_broker", Persistent); requestConsumer = cf.newConsumer("response_queue_broker"); cf.queueDeclare("response_queue_broker", Persistent); responseConsumer = cf.newConsumer("response_queue_broker"); for(String server : servers) /* also for client*/ String queueName = "server_queue_"+server; /*clinet_q*/ cf.queueDeclare(queueName, Persistent); serverQueues.put(client, cf.newProducer(queueName));/*clineQueues*/}
-run():
-\lstinline{Thread.start(new Thread() void run() int count = 0; while(True) Delivery d = requestConsumer.dequeue(); if(d != null) intermediate.add(d.getGuid(), d.getMessage()); serverQueues.get(count\%servers.size()).enqueue(d.getGuid(),d.getMessage()); count++; // with Func Cor Client run}
-\textbar Server
-\lstinline{String sName;}
-run():
-\lstinline{while(True) Delivery d = c.dequeue(try Database.store(request); p.enqueue(d.getGuid(), 'ACK'.toBytes()); catch(e) p.enqueue(d.getGuid(), 'ERROR'.toBytes());}
-\textbar \btext{TXQueue} Client:
-\lstinline{Queue<byte[]>messageBuffer = new Queue<byte[]>;Queue<Delivery> resultBuffer = new Queue<Delivery>;}
-request():
-\lstinline{guid = Guid.generateRandom();file = newFile('path/requestFile');file.write(guid);startTX message = messageBuffer.get(); producer.enqueue(guid, message); commitTX}
-reply():
-\lstinline{startTX Delivery delivery = consumer.dequeue(); resultBuffer.put(delivery); commitTX;}
-recovery():
-\lstinline{file = newFile("path/requestFile"); Guid R = file.readLastEntry(); Guid Re = cf.getLastEnqueued("request_queue"); Guid Rd = cf.getLastDequeued("reply_queue"); if(R != Re) requestTX() else if(R != Rd) while(cf.getQueueSize('reply_queue') == 0) Thread.sleep(500); replyTX() else /*nothing*/ spawn(while (true))}
-\textbar Server: \lstinline{processTX startTX Delivery delivery = consumer.dequeue(); producer.enqueue(delivery.getCorrId(), 'ACK'); commitTX;}
-
+\hlgray{S run():}
+\lstinline{while(true) byte[] req=c.dequeue();try Database.store(req);p.enqueue('ACK'.toBytes()) catch(e) p.enqueue('ERROR'.toBytes());}
+%
+%
+%
+\redtext{\hlgray{Correlation:}}
+\hlgray{C:}
+\bluetext{+}
+\lstinline{Hashmap<Guid,byte[]> intermediate=new();Hashmap<Guid,Correlation>correlations=new();//two also for Broker}
+\hlgray{C run():}
+\lstinline{Thread.start(new Thread(){void run(){while(true){Delivery d=c.dequeue();/*statt in broker responseConsumer.dequeue();*/if(d!=null){Guid g=d.getGuid();if(intermediate.containsKey(g){Correlation cor=new(g,intermediate.get(g),d.getMessage());intermediate.remove(g);correlations.add(g,cor);/*statt in Broker: clientQueues.get(guid.getClientName()).enqueue(g,cor.toBytes());*/}
+\hlgray{C send(byte[] msg):}
+\lstinline{Guid g=Guid.generate();p.enqueue(g,msg);intermediate.add(g,msg);//not in Broker C}
+\hlgray{S run():}
+\lstinline{while(true){Delivery req=c.dequeue();try{Database.store(req);p.enqueue(req.getGuid(),"ACK".toBytes()); catch(e) p.enqueue(req.getGuid(),"ERROR".toBytes());}
+%
+%
+%
+\redtext{\hlgray{Queue with Broker:}}
+\hlgray{C:}
+\bluetext{+}
+\lstinline{String clientName}
+\hlgray{C init():}
+\bluetext{+}
+\lstinline{/*producer*/cf.queueDeclare('req_que_broker',Persistent);cf.queueDeclare('c_que_'+clientName,Persistent);/*consumer*/}
+\hlgray{C void send(): see Correlation part above}
+\hlgray{C void receive():}
+\lstinline{Delivery d=c.dequeue();if(d!=null){Guid g=d.getGuid();Correlation cor=new();cor.fromBytes(d.getMessage());}
+\hlgray{Broker Class:}
+\bluetext{+}
+\lstinline{List<String> clients=new ArrayList<>();List<String> servers=new ArrayList<>();Map<String,Producer> serverQueues=new HashMap<>();Map<String, Producer> clientQueues=new HashMap<>();Consumer requestC;Consumer responseC;//CF,Host,2 HashMap like Correlation C}
+\hlgray{Broker init():}
+\lstinline{clients.add("c1");servers.add("s1");/*multi add*/cf.queueDeclare("request_queue_broker",Persistent);requestConsumer=cf.newConsumer("response_queue_broker");cf.queueDeclare("response_queue_broker",Persistent);responseConsumer=cf.newConsumer("response_queue_broker");for(String s:servers)/* also for client*/String queueName="server_queue_"+s;/*clinet_q*/cf.queueDeclare(queueName,Persistent);serverQueues.put(s, cf.newProducer(queueName));//clineQueues, repeat this for loop for Client}
+\hlgray{Broker run():}
+\lstinline{Thread.start(new Thread(){void run(){int count = 0;while(true){Delivery d=requestConsumer.dequeue();if(d!=null){intermediate.add(d.getGuid(),d.getMessage());serverQueues.get(count\%servers.size()).enqueue(d.getGuid(),d.getMessage());count++;//HERE: REUSE Correlation: Client run() function}
+\hlgray{S:}
+\bluetext{+}
+\lstinline{String serverName}
+\hlgray{S run():}
+\lstinline{while(true){Delivery d=c.dequeue(try{Database.store(request);p.enqueue(d.getGuid(),"ACK".toBytes());catch(e) p.enqueue(d.getGuid(),"ERROR".toBytes());}
+%
+%
+%
+\redtext{\hlgray{TX Queue}}
+\bluetext{+}
+\hlgray{C:}
+\lstinline{Queue<byte[]>messageBuffer=new;Queue<Delivery>resultBuffer=new;}
+\hlgray{C request():}
+\lstinline{guid=Guid.generateRandom();f=newFile("path");f.write(guid);startTX message=messageBuffer.get();producer.enqueue(guid,message); commitTX}
+\hlgray{C reply():}
+\lstinline{startTX Delivery d=c.dequeue();resultBuffer.put(d); commitTX;}
+\hlgray{C recovery():}
+\lstinline{f=newFile("requestFile");Guid R=f.readLastEntry(); Guid Re=cf.getLastEnqueued("request_queue");Guid Rd=cf.getLastDequeued("reply_queue");if(R!=Re)requestTX() else if(R!=Rd){while(cf.getQueueSize("reply_queue")==0) Thread.sleep(500);/*wait all out*/ replyTX() else/*nothing*/spawn(while(true))}
+\hlgray{S:}
+\lstinline{processTX startTX Delivery d=c.dequeue();p.enqueue(d.getCorrId(),"ACK"); commitTX;}

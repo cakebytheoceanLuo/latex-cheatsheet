@@ -1,44 +1,210 @@
-\section{Chap3-PRC/SessionLayer}
-\rtext{Remote Procedure Call}: Call non-local procedure on remote machine, like local call
-\textbar Hidden: Definition of message and content types, Marshalling/unmarshalling of parameters, Sending/receiving messages
-\btext{Sequence, COMU} 
-1.Client RPC, issues request to a client stub (a proxy object).
-\textbar 2. Client stub encodes parameters(marshalling, Chap2)
-\textbar 3. Given a network address(LAN, Internet), the client stub calls the server stub via RPC. 
-The RPC can be executed using a RPC library,a socket connection or another protocol.
-\textbar 4. The server stub receives the RPC.
-\textbar 5. The server sub decodes the parameters(ummarshalling) and calls the local procedure on the server.
-\textbar 6. Server executes RPC.
-\textbar 7. Local procedure $\overset{result}{\rightarrow}$ server stub $\overset{result}{\rightarrow}$ client.
-\btext{Parameter}
-CallByValue: easy forRPC
-\textbar CallByRef: notForRPC (client,server different address spaces) $\rightarrow$ call-by-copy (serialize objects with Thrift, Protocol
-Buffers)
-\btext{Binding}
-StaticB: Hardcoded reference to server 
-\textbar Simple and effective, no additional infrastructure
-\textbar Client and Server tightly coupled
-\textbar \textbar 
-DynamicB:
-Relies on Name and directory services to locate servers
-\textbar Cost is in additional infrastructure, protocol and registration primitives
-\textbar in 3. C requests service, executes RPC with S address. NameService provides S address (S registed service at directory)
-\btext{RPC Sockets}in 3: RPC call, p2p comm, connect S port. S accept connection.
-\btext{Error}
-1.LostRequest(longer than Timeout of C,resend $\overset{SequenceNum}{\rightarrow}$ NoDuplicates)
-\textbar 2.LostReply(S caches result, resend back whenDuplicates. If reply acknowledged,delete cache)
-\textbar 3.ClientCrash(S waits ACK forever, orphan. 
-C restart $\overset{SessionCounter}{\rightarrow}$  old reply not interfere with new requests)
-\textbar 4.ServerCrash(C notKnow RPC executed or not. S logs keepingstate of the procedure $\rightarrow$ noMultiExecutions)
-\btext{FailureSemantics}
-1.Maybe (No repetition,Simple and efficient,No guarantee for success)
-\textbar 2.AtLeastOnce(Repetition after timeout,No identification of duplicates, Acceptable for idempotent operations)
-\textbar 3.AtMostOnce(Identification of duplicates:sequenceNum, No repetition, Acceptable for non-idempotent operations, No result when S crash)
-\textbar 4.ExactlyOnce(State of procedure is recorded, 
-Only possible with transactional processing $\rightarrow$ Atomic execution, After S crash operation can be recovered and executed exactly once)
-
-\rtext{Remote Method Invocation RMI} Object-oriented RPC, Procedure call on remote object, Method parameters can be send two ways
-(call-by-value $\rightarrow$Implement Serializable, call-by-reference $\rightarrow$ extend Remote interface),
-Object reference identifies remote object
-\rtext{RMIvsRPC}RPC(Procedures of remote processes are called,Service interface provides set of procedures)
-\textbar RMI(Objects in different processes communicate with each other, Remote interface specifies methods of an object)
+\section{RPC/SessionLayer}
+\mysubsection{Remote Procedure Call:}
+Call \bluetext{non-local procedure on remote S}, like local call
+\textbar
+\bluetext{Hidden:} 
+\orangetext{Msg Def.,
+content types, 
+Marshalling/unmarshalling of parameters, 
+Sending/Receiving Msg}
+\\
+\rtext{Sequence\begin{CJK*}{UTF8}{gbsn}流程\end{CJK*}, COMU}
+\bluetext{1.}
+C call RPC issuing req. to \redtext{C stub (a proxy obj)}. 
+\bluetext{2.}
+\redtext{C stub} \bluetext{encodes para.}(\orangetext{marshalling, Chap2})
+\bluetext{3.}
+Network Address(LAN, Internet) given, \redtext{C stub} calls the S stub via \bluetext{RPC}, 
+which executed by \bluetext{RPC library, 
+RPC protocol
+,socket connection.}
+\bluetext{4.}
+\redtext{S stub} receives \bluetext{RPC.}
+\bluetext{5.}
+\redtext{S sub} \bluetext{decodes para.(ummarshalling)} and calls local procedure at S.
+\bluetext{6.}
+S executes RPC.
+\bluetext{7.}
+Local procedure $\overset{result}{\rightarrow}$
+\redtext{S stub}
+$\overset{result}{\rightarrow}$ C.
+\\
+\redtext{RPC Parameter}
+\bluetext{CallByValue:}
+easy
+\bluetext{CallByRef:}
+\orangetext{not work(C,S different address spaces)}
+$\rightarrow$
+\bluetext{CallByCopy} (serialize objects with Thrift, Protocol Buffers)
+\\
+\redtext{RPC Binding}
+\bluetext{StaticB:}
+Hardcoded reference to S; 
+\btext{++:}
+Simple,
+Effective,
+No Additional Infrastructure
+\btext{--:}C S tightly coupled
+\bluetext{DynamicB:}
+Relies on \orangetext{Name and directory services} to locate S;
+Cost in additional infrastructure, protocol, registration primitives;
+$\rightarrow$
+\rtext{In Sequence Above\begin{CJK*}{UTF8}{gbsn}流程\end{CJK*}}
+\bluetext{Statt 3.
+C requests service, 
+executes RPC with S address. 
+NameService provides S address
+(S registed service at directory before)}
+\\
+\redtext{RPC with Sockets}
+\rtext{In Sequence Above\begin{CJK*}{UTF8}{gbsn}流程\end{CJK*}}
+\bluetext{Statt 3:
+RPC call, 
+P2P comm, 
+C Socket(added under RPC Protocol) connect S port(S Socket and Socket). 
+S accept connection.}
+\\
+\rtext{RPC Errors}
+\bluetext{1.Lost Req.}
+longer than \bluetext{Timeout of C},
+C resend with \redtext{SequenceNum} $\rightarrow$ \orangetext{No Duplicates at S}
+\greentext{Send fail, Resend before req. done, Resend before req. comes}
+\bluetext{2.Lost Reply}
+\orangetext{Same resend after Timeout}
+\bluetext{S caches result, 
+repeat result back} when Duplicates coming. 
+If reply acknowledged, delete cache
+\greentext{Reply fail, Reply longer than Timeout}
+\bluetext{3.C Crash}
+\orangetext{S waits ACK forever}(orphan). 
+C restart using \redtext{SessionCounter}
+$\rightarrow$
+old reply not mix with new requests
+\greentext{C Crash sofort after req., but first resp. after restart(not mix)}
+\bluetext{4.S Crash}
+C not Know RPC executed or not.
+\redtext{S logs keeps state} of the procedure
+$\rightarrow$
+no Multi Executions
+\greentext{state: how many \% of resp. done}
+\\
+\redtext{\hlgray{Failure Semantics}}
+\bluetext{\hlgray{1.Maybe}}
+\orangetext{\hlgray{No repeat,
+One Try,
+No guarantee for success}}
+\btext{\hlgray{++:}}
+\hlgray{Simple,
+Efficient,}
+\bluetext{\hlgray{2.AtLeastOnce}}
+\orangetext{\hlgray{Repeat after Timeout until ACK,
+No ID of duplicates}}, 
+\hlgray{Acceptable for} \redtext{\hlgray{idempotent(always same result) operations}}
+\bluetext{\hlgray{3.AtMostOnce}}
+\orangetext{
+\begin{CJK*}{UTF8}{gbsn}Duplicate不重复处理， 不重复回复\end{CJK*}
+\hlgray{
+ID of duplicates: sequenceNum,} 
+\redtext{\hlgray{Repeat resend, but No Repeat Execution}}, 
+\hlgray{Acceptable for non-idempotent operations}, 
+\redtext{\hlgray{No (or unknown result) when S crash}}
+\begin{CJK*}{UTF8}{gbsn}Executed也不保存\end{CJK*}
+}
+\bluetext{\hlgray{4.ExactlyOnce}}
+\orangetext{
+\begin{CJK*}{UTF8}{gbsn}Duplicate不重复处理， 不重复回复\end{CJK*}
+\hlgray{
+State of procedure recorded, 
+Only possible with TX
+$\rightarrow$
+Atomic execution, 
+After S Crash and C resend, the crashed operation recovered and executed exactly once}}
+\\
+\redtext{Syn. Asyn. RPC}
+\bluetext{Syn. RPC:}
+C blocked until result from S comes
+\bluetext{Asyn. RPC:}
+lets C continue
+\bluetext{Asyn. C:}
+handle syn. to call caller th.,
+Reply of RPC provided by executing \orangetext{a callback from caller th. to C} 
+\redtext{or} 
+\orangetext{C call polling to caller th.}.
+\bluetext{Asyn. C:}
+C calls redirected by S to multiple handler th.(th. pool)
+\textbar \textbar \textbar
+\bluetext{RPC Problems:}
+not like local procedure call:
+error semantics,
+Reliability depends on underlying protocol (TPC),
+Separate address spaces,
+Lack of shared variables 
+\bluetext{+}
+Performance Transparency
+\bluetext{+}
+Scalability
+\bluetext{+}
+Security
+\\
+\mysubsection{Remote Method InvocationRMI}
+\orangetext{Object-oriented} RPC;
+Procedure call on remote Obj;
+Method para. be \orangetext{send two ways}
+(\bluetext{callByValue}$\rightarrow$Implement Serializable, 
+\bluetext{callByReference}$\rightarrow$extend Remote interface);
+Obj reference identifies remote Obj.
+\textbar \textbar
+\redtext{RPC vs RMI}
+\bluetext{RPC}
+Procedures of remote processes called,
+Service interface provides set of procedures
+\bluetext{RMI}
+Obj in diff processes comm. with each other, 
+Remote interface specifies methods of obj
+\textbar
+\redtext{RMI Protocol:}
+C
+$\rightarrow$
+Stub(Remot Ref. Layer, Transport)
+$\rightarrow$
+LAN\textbackslash Internet
+$\rightarrow$
+Skeleton(Remot Ref. Layer, Transport, RMI Registery)
+$\rightarrow$
+S
+\textbar
+\redtext{RMI technology:}
+CORBA, COM DCOM .NET,
+\btext{Java RMI:}
+\orangetext{Define ,extend remote interface method:}
+\lstinline{import java.rmi.Remote+RemoteException;public interface Compute extends Remote{<T> T executeTask(Task<T> t)throws RemoteException;}
+\orangetext{Define para.:}
+\lstinline{import java.io.Serializable+math.BigDecimal;public class Pi implements Task<BigDecimal>,Serializable{private static final long serialVersionUID=227L;public BigDecimal execute(){return computePi(digits);/*]*/public static BigDecimal computePi(int digits)}
+\orangetext{Implement remote obj:}
+\lstinline{public class ComputeEngine implements Compute{public ComputeEngine(){super();/*]*/public <T> T executeTask(Task<T> t){return t.execute();/*]*/public static void main(String[] args){if(System.getSecurityManager()==null){System.setSecurityManager(new SecurityManager());/*]*/try{String name="Compute"; Compute engine=new ComputeEngine(); Compute stub=(C) UnicastRemoteObject.exportObject(engine,0); Registry registry=LocateRegistry.getRegistry(); registry.rebind(name,stub); print("ComputeEngine bound"); catch e}
+\orangetext{Register object at S,Lookup and C call obj:}
+\lstinline{public class ComputePi{public static void main(String args[]){if(System.getSecurityManager()==null){System.setSecurityManager(newSecurityManager());/*]*/try{ String name="Compute"; Registry registry=LocateRegistry.getRegistry(args[0]); Compute comp=(Compute) registry.lookup(name); Pi task=new Pi(Integer.parseInt(args[1])); BigDecimal pi=comp.executeTask(task); print(pi); catch e;}
+\btext{--:}
+Locked into Java,
+not scale well,
+Versioning problem,
+Average performance,
+latency insufficient
+No global obj registry
+\\
+\redtext{\hlgray{More to Sec2. Protocol Design:}}
+\lstinline{class Complex{double a,b; /*Cons.*/ public String marshal(){return concatStrings('(',valueOf(a),',',valueOf(b),')';/*]*/ public void unmarshal(String complexString){a=parseDouble(removeString(splitString(complexString,',')[0],'(')); b=parseDouble(removeString(splitString(complexString,',')[1],')'));/*]*/}
+\redtext{\hlgray{M1:}}
+\lstinline{class M1{Complex c1=new;Complex c2=new;String op='+';/*Cons*/ public String marshal(){return concatStrings('<',c1.marshal(),';',c2.marshal(),';',op,'>');/*]*/public void unmarshal(String m1String){c1.unmarshal(removeString(splitString(m1String,';')[0],'<')); c2.unmarshal(splitString(m1String,';')[1]); op=removeString(splitString(m1String,';')[2],'>');/*]*/}
+\redtext{\hlgray{M2:}}
+\bluetext{one Complex, String st='ok'.}
+\redtext{\hlgray{RPC C:}}
+\lstinline{class Client{/*App.Layer*/public Complex callRemoteService(Complex c1, Complex c2, String op){M1 m1 = new; M2 result=sendRPC(m1); return result.cr;/*]*/ /*Repre.Layer*/public M2 sendRPC(M1 m1){String result=sendMessage(m1.marshal()); M2 m2=new; return m2.unmarshal(result);/*]*/ /*SessionLayer*/public String sendMessage(String message){String ipAddress='112.32.86.113'; int port=8883; Socket c=new; c.connect(ipAddress, port); c.send(message); String result=c.receive(); c.close(); return result;/*]*/}
+\redtext{\hlgray{RPC S:}}
+\lstinline{/*APPLayer*/public Complex callLocalService(Complex c1,Complex c2,String op){Complex result; switch(op){case "+" :return new Complex(c1.a + c2.a,c1.b + c2.b); case "-" :return new Complex(c1.a - c2.a,c1.b - c1.b); case "*" : .../*]]*/ /*Repre.Layer*/public void processRPC(String rpc){M1 m1 = new; m1.unmarshal(RPC); Complex cr=callLocalService(m1.c1,m1.c2,m1.op); M2 m2=newM2(cr,'ok'); return m2.marshal();/*]*/ /*SessionLayer*/provideService(){int port=8888; ServerSocket ss=new; while(true){Socket c = ss.accept(); String message = c.receive(); result = processRPC(message); c.send(result); c.close();/*]]*/}
+\hlgray{
+Values never has delimiter;
+If class changed, parsing the old classes fails;
+Obj meta info stored into Msg$\rightarrow$XML;
+Obj properties serialized in bytes, fixed length intervals$\rightarrow$Protocol Buffers
+}

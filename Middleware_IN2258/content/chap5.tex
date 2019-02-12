@@ -1,28 +1,55 @@
-\section{C5-Messaging\&Queuing}
-\btext{MessageQueuingPattern}data shared across applications on different platforms, MQP  transfer packets of data (messages) frequently, immediately, reliably, 
-exactly once, and asynchronously, using customizable formats (Enterprise application integration EAI)
-\textbar MessagePassing: message(receiver+sender+type+payload) queuing without message buffering
+\section{Messaging\&Queuing}
+\redtext{Msg Queuing Pattern}
+data shared across APP diff. platforms, 
+MQP transfer data frequent, immediate, reliably, 
+exactly once, asy.
+\redtext{Enterprise APP integration EAI}% TODO: Pub SUb
+APP comm. using single Msg Bus
+\\
+\redtext{Msg Passing:} 
+\orangetext{Msg\bluetext{=}receiver\bluetext{+}sender\bluetext{+}type\bluetext{+}payload}
 \lstinline{send(message); receive(message); callback();}
-\textbar \btext{MessagingvsRMI}
-One interface (per messaging product) with generic operations,
-Lower-level of abstraction than remote invocations,
-Flexible in that messaging allows arbitrary interaction patterns between sender and receiver,
-Sender is not blocked after sending,
-Can emulate request/reply pattern,
-Asynchronous behavior more difficult to use and debug
-$\Leftrightarrow$
-Interface required and known, but differs across apps, 
-Programming model resembles non-remote calls,
-Realizes request/reply pattern,
-Sender blocked until reply arrives, unless there is an error,
-As compared to non-remote call, more potential for failures
-\textbar \btext{MessagePassingProperties}
-Reliability(SequenceNum, Ack, Timeout and re-transmission$\rightarrow$Message loss,
-Check-sums, Error correcting codes (redundancy in transmission to reconstruct),Repeated sending $\rightarrow$ Message Corruption)
-ordering(message arrive in a specific order: FIFO,Causal,Total),
-Synchronous vs. asynchronous sending
+\redtext{\bluetext{Messaging} vs \greentext{RMI}}
+interface
+\bluetext{(per Msg product) with generic operations}
+\textbackslash
+\greentext{required and known, but differs across apps};
+\bluetext{Lower-level of abstraction than RMI}
+\textbackslash
+\greentext{like non-remote calls but fail potential};
+\bluetext{Flexible in that messaging allows arbitrary interaction patterns between sender and receiver};
+Sender \bluetext{not blocked}
+\textbackslash
+\greentext{blocked until reply arrives}
+after sending;
+\bluetext{emulate}
+\textbackslash
+\greentext{Realize}
+request/reply pattern;
+\bluetext{Asynchronous behavior hard to use debug}
+\textbar \textbar \textbar
+\redtext{Msg Passing Properties}
+\bluetext{1.Reliability}
+SequenceNum,
+Ack, 
+Timeout resend
+$\rightarrow$Msg loss;
+CheckSums, 
+Error correcting codes (redundancy),
+Repeat send
+$\rightarrow$Msg Corruption;
+Loss\redtext{+}Corruption\redtext{+}Msg encrypting
+$\rightarrow$Malicious Intend
+\bluetext{2.Ordering}
+Msg arrive in order:
+FIFO(for one sender),Causal,Total(for all sender);
+\greentext{GOAL:}
+All Msg delivery
+\redtext{OR}
+Fast incomplete Msg delivery
+\bluetext{Synchronous vs. asynchronous sending
 Synchronous vs. asynchronous receiving
-Buffering of messaging $\rightarrow$ Queuing
+Buffering of messaging $\rightarrow$ Queuing}
 \textbar \btext{SynchronousComm}
 Sender blocked until receive on receiver-side completed,
 Receiver blocked until sendon sender-side completed,
@@ -65,7 +92,11 @@ SW size is determined statically or dynamically
 Window size < buffer size (receiver buffer never overflows),
 Window size > buffer size( Potential for higher throughput but risk of buffer overflow
 ,Use flow control (dynamically adjusting the window size))
-\textbar \rtext{Queuing}:message passing + message buffering
+
+
+
+
+\rtext{Queuing}:message passing + message buffering
 \textbar \btext{Decoupling Ser,Rer} $\rightarrow$ indirect and asy compared(via Callback = deque)
 Space de.(Ser not know Rer, but know Queue),
 Time de.(Ser Rer not same time),

@@ -9,7 +9,6 @@ Parameter passing convention calling remote procedures,
 Atomic execution of TX,
 Enable APP integration,
 Data persistence)
-% \textbar \textbar \textbar
 \\
 \redtext{Middleware} as layer between \bluetext{transport \& application layer}
 or \bluetext{Above OS and below APP}. 
@@ -42,32 +41,33 @@ Predictable pref.;
 Secure; 
 Heterogeneous; 
 Open
-\\
-\rtext{8 Fallacies}
-\rtext{1.Network Reliable} 
-\bluetext{Assumptions:}Power Supply, Hard Disk, Node Failures, Config., Bugs
-\bluetext{Effect:}APP hangs, crashes 
-\bluetext{Countermeasures:}
-Redundancy HW\&SW systems,middleware \&application; 
-Catch Exceptions; 
-Check Codes, React; 
-Retry After Timeouts;
-pos. neg. ACK; 
-Identify \& ignore duplicates; 
-idempotent operations
-\rtext{2.Latency\begin{CJK*}{UTF8}{gbsn}延迟\end{CJK*} Is Zero}
-time For Data Transfer(speed Of Light); 
-Bandwidth:how Much Data transferred (bit/s)
-\textbar
-Local Call: Push and a Jump to Subroutine;
-SY Call: OS, 100s of assembly;
-Call across LAN: SY calls on caller $+$ callee $+$ network latency;
-Call across WAN: transmission delay
-\redtext{3.Bandwidth is infinite.
-4.The network is secure.
-5.Topology doesn't change.
-6.There is one administrator.
-7.Transport cost is zero.
-8.The network is homogeneous}
-\\
-\bluetext{Standardization}: Official:ISO, ITU, DIN, Semi-official: IEEE, W3C, OpenGroup
+% \\
+% \rtext{8 Fallacies}
+% \rtext{1.Network Reliable} 
+% \bluetext{Assumptions:}Power Supply, Hard Disk, Node Failures, Config., Bugs
+% \bluetext{Effect:}APP hangs, crashes 
+% \bluetext{Countermeasures:}
+% Redundancy HW\&SW systems,middleware \&application; 
+% Catch Exceptions; 
+% Check Codes, React; 
+% Retry After Timeouts;
+% pos. neg. ACK; 
+% Identify \& ignore duplicates; 
+% idempotent operations
+% \rtext{2.Latency\begin{CJK*}{UTF8}{gbsn}延迟\end{CJK*} Is Zero}
+% time For Data Transfer(speed Of Light); 
+% Bandwidth:how Much Data transferred (bit/s)
+% \textbar
+% Local Call: Push and a Jump to Subroutine;
+% SY Call: OS, 100s of assembly;
+% Call across LAN: SY calls on caller $+$ callee $+$ network latency;
+% Call across WAN: transmission delay
+% \redtext{3.Bandwidth is infinite.
+% 4.The network is secure.
+% 5.Topology doesn't change.
+% 6.There is one administrator.
+% 7.Transport cost is zero.
+% 8.The network is homogeneous}
+% \\
+% \bluetext{Standardization}:
+% Official:ISO, ITU, DIN, Semi-official: IEEE, W3C, OpenGroup

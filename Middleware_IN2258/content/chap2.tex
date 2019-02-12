@@ -1,53 +1,287 @@
-\section{C2 EXTERNAL DATA REPRESENTATION, Presentation Layer} 
+\section{External Data Representation}
+\btext{Presentation Layer}
+\textbar \textbar
 \rtext{Heterogeneity}
-HW: Diff. HW architectures store bytes:Big, Small Endian
-ProgrammingLanguage:Diff. PL store data types differently:AB, 0AB
-\rtext{Transformation between representations}: Transformation between local and remote representations|Information may lost
-\textbf{Two realizations}:
-$1.$\textbf{Pairwise transformation between $n$ local representations}(vollständigGraph,$\#n^2 - n$, Either sender or receiver has to transform) 
-$2.$\textbf{Transformation to and from canonical representation}(a single canonical $C$ as intermediate representation|No local information about communication
-partner needed| $\#2*(n-2)$, $ -2$if canonical is one of $n$)
-\rtext{XDR} partOf NFS, OSPresentationLayer, encodes only data items, no meta information about their types +:easy, -:Receiver lost data description
-\textbar exactly 32 bit integer is stored according to \textbf{big endian} +:Fixed length reduces computation. -:wasting
-\textbar Data is encoded into blocks of multiples of 4: n-bytes contain data; r-bytes are used for padding with n + r mod 4 = 0
-\textbar int: int32; float=Sign+Exponent+Mantissa, String=length\_int32+bytes, array=length\_int32+ele
-\includegraphics[width=.8\linewidth]{chap2_2.png} 
-\lstinline{struct forecast:String weekday;int temperature;String tags<>;}
-\rtext{ASN.1}:Abstract description of data types,telecommunication,internet protocol 
-\textbar Enables exchange in heterogeneous systems
-\textbar \btext{abstractSyntax $\overset{compiler}{\rightarrow}$ concreteSyntax Java, C++, they transfer syntax using encodingRules}
-\includegraphics[width=.45\linewidth]{chap2_3.png}
-\includegraphics[width=.45\linewidth]{chap2_4.png}
-\lstinline{Forecast::==SET{weekday IA5String,temperature Interger,tags SEQUENCE OF IS5String;}
-\includegraphics[width=.45\linewidth]{chap2_5.png}
-\textbar encodes type information, +:receiver not need to know data description,-:additional overhead
-\rtext{Java object serialization,JOS}
-Stream-based transmission of serialized objects(Via TCP or UDP sockets)
-, Receiver of object needs implementation of class
-, Serialization does not require class specific code(Java reflection)
-, Class implements java.io.Serializable interface
-\textbf{-}: locked into Java(No support for heterogeneous systems), No support for versioning(If the serialized class changes, all network nodes
-have to be updated)
-\rtext{serialize:obj2bit}\lstinline{Socket s = new Socket("localhost", 8022);ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream()); oos.writeObject(obj);}
-\rtext{deserialize:bit2obj}\lstinline{ServerSocket ss = new ServerSocket(8022);Socket s = serverSocket.accept();ObjectInputStream ois = new ObjectInputStream(s.getInputStream());obj=(Obj)ois.readObject();}
-\rtext{XML}De facto standard for data exchange
-\textbar Schema: \lstinline{<xsd:element name="forecast"> <xsd:complexType> <xsd:all> <xsd:element name="weekday" type="xsd:string"/> <xsd:element name="temperature" type="xsd:integer"/> <xsd:element name="tags">
-<xsd:complexType> <xsd:sequence> <xsd:element name="tag" type="xsd:string" maxOccurs=\"unbounded\"/> </xsd:...>}
-\textbar \lstinline{<forecast> <weekday>monday</weekday> <temperature>14</temperature> <tags> <tag>sunny</tag> <tag>dry</tag> </..>}
-\rtext{JSON} human-readable text to transmit data objects
-\textbar \lstinline{{"forecast":{"weekday":"monday","temperature" :14,"tags":["sunny","dry"] }\}\}}
-\textbar \textbf{+ XML/JSON}:readable, defined as standard, JS support JSON(directly loaded  Browser and deserialized)
-\textbar \textbf{- XML/JSON}: verbose, badPreformance, longOverhead, slowWriteParse
-\rtext{ProtocolBuffersGoogle}: Similar concept like ASN.1, but not standard, efficient binary serialization, heterogeneous systems
-\btext{data structures defined in .proto file(IDL) generate serialization code(Java, C$\#$), then java, .NET projects request, response each other}
-\textbar DataModel.proto: \lstinline{message forecast{required string weekday =1;required int32 temperature =2;repeated string tags =3; optional float price=4;}\}}
-\includegraphics[width=.45\linewidth]{chap2_6.png}
-\textbar RPC ServiceInterface.proto: \lstinline{enum Status{OK=0;EXISTING=1;NOT_EX=2;ERROR=3;}} \lstinline{message SearchRequest{required String attribute =1;required String value =2;}} \lstinline{message CustomerList{repeated Customer customers =1;}}
-\lstinline{service AdministrationService{rpc CreateCustomer (Customer) return (Status); rpc DeleteCustomer(Customer) return (Status); rpc SearchCustomer(SearchRequest) return (CustomerList);}}
-
-\textbar \textbf{+:}efficient writing/parsing,well documented,Versioning \textbf{-:}No RPC
-\rtext{ApacheThrift:framwork, applied Hadoop and HBase}
-.thrift: \lstinline{struct Forecast{1: string weekday 2: i32 temperature 3: list<string> tags}\}}
-\includegraphics[width=.45\linewidth]{chap2_7.png}
-\textbar \textbf{+:}Multiple protocols to serve different purposes(binary, JSON),RPC,Open source,widely,Versioning
-\rtext{VariableLength:}
+\bluetext{HW}: Diff. HW architectures store bytes: \orangetext{Big, Small Endian}
+\bluetext{ProgrammingLanguage}:Diff. PL store data types diff.:AB0, 0AB, AB
+\\
+\redtext{Transformation between repre.s}: 
+Trans. between \orangetext{local and remote repre.} (info may lost)
+\\
+\redtext{Two realizations:}
+\bluetext{1.Pairwise trans. between $n$ local repre.}
+vollständigGraph,$\#n^2 - n$, \orangetext{Either sender or receiver has to transform}
+\bluetext{2.Trans. to and from canonical repre.}
+single canonical $C$ as middle repre., 
+No local info about comm. partner; 
+$\#2*(n-2)$ \textbar $ -2$if canonical is one of $n$
+\\
+\redtext{\hlgray{XDR}}
+OSI Pre. Layer, \orangetext{encodes only data items}, no meta info(types)
+\btext{\hlgray{++:}}
+\hlgray{easy, Fixed length reduces computation}
+\btext{\hlgray{--:}}
+\hlgray{Receiver need data description, wasting, no meta data}
+\textbar 
+\orangetext{\hlgray{exactly 4 Byte(32 bit) int}}\hlgray{using}\orangetext{\hlgray{big endian}}
+$\rightarrow$
+\bluetext{n} bytes data; \bluetext{r} bytes padding; $(n + r)\;mod 4 = 0$
+\textbar \hlgray{int32; float=Sign+Exponent+Mantissa, String=length\_int32+bytes, array=length\_int32+ele}
+\lstinline{struct forecast{String weekday;int temperature;String tags<>;//]}
+\bluetext{}{\hlgray{weekday:}}
+\hlgray{00 00 00 06, 6D 6F 6E 64, 61 79 00 00 $\rightarrow$ "mond ay\_\_"};
+\bluetext{\hlgray{temperature:}}
+\hlgray{00 00 00 0E};
+\bluetext{\hlgray{tags:}}
+\hlgray{00 00 00 02, 00 00 00 05, 73 75 6E 6E, 79 00 00 00, 00 00 00 03, 64 72 79 00$\rightarrow$ sunn y\_\_\_ dry\_"}
+\bluetext{\hlgray{Total:40 B}}
+\\
+%
+%
+%
+\redtext{\hlgray{ASN.1:}}
+Abstract description of data types encoding(telecommunication,internet protocol); 
+Enables exchange in heterogeneous SY;
+\btext{\hlgray{++:}}
+\hlgray{receiver not need to know data description}
+\btext{\hlgray{--:}}
+\hlgray{additional overhead(types)}
+\bluetext{abstract Syntax} $\overset{compiler}{\rightarrow}$ 
+\bluetext{concrete Syntax}: Java, C++, 
+they \bluetext{transfer syntax using encodingRules}
+\textbar
+\redtext{data:}
+\bluetext{Tag:}
+2+1+5=8bit, 
+\orangetext{Class:}
+00 UNIVERSAL,01 APP,10 Context,11 PRIVATE, 
+\orangetext{f:}0 primitive,1 constructed, 
+\orangetext{numbers:}from table
+\bluetext{+ Length 8bit + Value multi 8bit}
+\rtext{\hlgray{in Type Table: decimal, in Encoding: 0x}}
+\lstinline{Forecast::==SET{weekday IA5String,temperature Interger,tags SEQUENCE OF IS5String;//]}
+\bluetext{\hlgray{weekday:}}
+\hlgray{16, 06, 6D 6F 6E 64 61 79 $\rightarrow$}
+\redtext{\hlgray{(16)0x for 22 for IA5String}};
+\bluetext{\hlgray{temperature:}}
+\hlgray{02, 01, 0E $\rightarrow$}
+\redtext{\hlgray{02 for int}};
+\bluetext{\hlgray{tags:}}
+\hlgray{30, 0C, 16, 05, 73 75 6E 6E 79, 16, 03, 64 72 79}
+\redtext{\hlgray{$\rightarrow$ 30 for SEQUENCE\_OF, 12 for all Nums}}
+\bluetext{\hlgray{Total:27 B}}
+%
+%
+%
+\\
+\redtext{Java object serializationJOS}
+Stream-based transmission of serialized objects(Via TCP or UDP sockets);
+Receiver needs implementation of class;
+Serial. not require class specific code(Java reflection);
+\bluetext{java.io.Serializable}
+\textbar
+\lstinline{public class Person implements Serializable{String name;}
+\btext{--}:
+locked into Java(No support for heterogeneous systems);
+No support for versioning
+(If the serialized class changed eg. new attribute added, update all network nodes)
+\redtext{serialize:obj2bit}
+\lstinline{try{Socket s = new S("localhost", 8022);ObjectOutputStream oos = new OOS(s.getOutputStream()); oos.writeObject(obj);/*write obj stream to socket*/ catch (e) {e.printStackTrace();}
+\redtext{deserialize:bit2obj}
+\lstinline{ServerSocket ss = new SS(8022);Socket s = ss.accept();ObjectInputStream ois = new ObjectInputStream(s.getInputStream());obj=(Obj)ois.readObject();}
+%
+%
+%
+\\
+\redtext{\hlgray{XML}}
+De facto standard
+\hlgray{XML Schema:} 
+\lstinline{<xsd:element name="forecast"> <xsd:complexType> <xsd:all> <xsd:element name="weekday" type="xsd:string"/> <xsd:element name="temperature" type="xsd:integer"/> <xsd:element name="tags"><xsd:complexType> <xsd:sequence> <xsd:element name="tag" type="xsd:string" maxOccurs=\"unbounded\"/> </xsd:...>}
+\hlgray{XML Document: 116B:}
+\lstinline{<forecast> <weekday>monday</weekday> <temperature>14</temperature> <tags> <tag>sunny</tag> <tag>dry</tag> </..>}
+\redtext{XML RPC}
+Interoperable RPC standard,
+Predecessor of SOAP,
+light-weight,
+HTTP
+%
+%
+%
+\\
+\redtext{\hlgray{JSON}}
+human readable text to \orangetext{transmit data objects};
+JSON databases: MongoDB
+\hlgray{JSON obj:}
+\lstinline{{"forecast":{"weekday":"monday","temperature" :14,"tags":["sunny","dry"]//]]}
+\btext{\hlgray{++XML/JSON:}}
+\hlgray{readable,
+defined as standard, 
+JS support JSON(directly loaded  Browser and deserialized),
+XML Builders/Parsers}
+\btext{\hlgray{--XML/JSON:}}
+\hlgray{
+verbose, 
+bad Preformance, 
+Overhead(XML), 
+more than binary data repre.,
+slow Write\&Parse}
+\redtext{JSON RPC:}
+Stateless, 
+light-weight,
+avoid complexity
+like XML-RPC using JSON,
+many prog. lang.(JS, C, C++, Java, PHP)
+\bluetext{Req. batch:(protocol version 2.0, methodName req.id)}
+\lstinline{[{"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"/*]*/, {"jsonrpc": "2.0", "method": "notify\_hello", "params": [7]/*]*/, {"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"/*]*/, "id": "5"/*]*/, {"jsonrpc": "2.0", "method": "get\_data", "id": "9"/*]*/]}
+\bluetext{Resp. Batch:(result,req.id)}
+\lstinline{[{"jsonrpc": "2.0", "result": 7, "id": "1"/*]*/, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"/*]*/, "id": null/*]*/, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"/*]*/, "id": "5"/*]*/, {"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"/*]*/]}
+%
+%
+%
+\\
+\redtext{\hlgray{ProtocolBuffers PB:}}
+\bluetext{\hlgray{Google}}
+\hlgray{Concept like} \redtext{\hlgray{ASN.1}}, 
+\hlgray{
+but not standard, 
+efficient binary serialization, 
+heterogeneous SY(Java, C++, C\#)}
+\btext{\hlgray{++:}}
+\hlgray{
+efficient write/parse, 
+Well documented, 
+Versioning, 
+marshalled efficiently,
+faster than Thrift,
+data compression}
+\btext{\hlgray{--:}}
+\hlgray{
+No RPC, 
+binary format not readable}
+\textbar
+\bluetext{data structures independently defined in .proto file(IDL)}
+$\rightarrow$
+\orangetext{generate serialization code}(Java, C\#)
+$\rightarrow$
+Java, .NET \orangetext{projects request, response each other}
+\hlgray{DataModel.proto:} 
+\lstinline{message forecast{required string weekday =1;required int32 temperature =2;repeated string tags =3; //optional float price=4;]}
+\hlgray{
+fieldTag(5bit)=1, type(3bit)=2(lengthDelimited: string)
+:00001 010
+$\rightarrow$}
+\redtext{OA, 06(length), 6D 6F 6E 64 61 79}
+\hlgray{("monday", utf8, 0x);
+fieldTag=2,type=0(Var-int)
+:00010 000
+$\rightarrow$
+10, 0E;
+FieldTag=3,type=2
+:00011 010
+$\rightarrow$}
+\redtext{1A, 05, 73 75 6E 6E 79}
+\hlgray{(sunny");
+FieldTag=3,type=2
+:00011 010
+$\rightarrow$}
+\redtext{1A, 03, 64 72 79}
+\hlgray{("dry")}
+\redtext{RPC PB/Thrift:}
+\bluetext{each call define Msg type .proto(compile in C++)\textbackslash .thrift file}
+C $\rightarrow$ C Stub(Serializer, Transport)
+$\rightarrow$
+LAN\textbackslash Internet
+$\rightarrow$
+S Stub(Deserializer(generated Code), Transport(PB) \textbackslash TSocket(Thrift library))
+$\rightarrow$
+S
+\greentext{Process:
+1.Define the RPC service interface in a proto \textbackslash thrift file
+2.Generate code
+3.Implement service
+4.Implement C S (Thrift-library:Tsocket, TServerSocket, Tserver, TSimpleServer)}
+\hlgray{RPC ServiceInterface.proto:}
+\lstinline{enum Status{OK=0;EXISTING=1;NOT\_EX=2;ERROR=3;//]}
+\lstinline{message SearchRequest{required String attribute=1;required String value=2;//]} 
+\lstinline{message CustomerList{repeated Customer customers=1;//]}
+\lstinline{service AdministrationService{rpc CreateCustomer(Customer) return(Status); rpc DeleteCustomer(Customer) return(Status); rpc SearchCustomer(SearchRequest) return(CustomerList);//]}
+\bluetext{RPC Thrift(code in Thrift S):}
+Server(APPLayer)=
+Processor(ServiceLayer)
+\bluetext{+}
+Protocol(Pres.Layer)
+\bluetext{+}
+Transport(CommLayer)
+\orangetext{Thrift Service:}
+\lstinline{service MathematicsService{i32 add(1:i32 add1, 2:i32 add2)//]}
+\orangetext{Java Impl. Service:}
+\lstinline{public class MathematicsServiceHandler implements MathematicsService.Iface{public long add(int add1,int add2) throws TException{return add1 + add2;}
+\orangetext{Thrift S:}
+\lstinline{public class MathematicsServer{public void start(Integer port) throw TTransportException{TServerSocket serverTransport=new TSS(port); MathematicsService.Processor p=new MS.P(new MathematicsServerHandler()); TServer s=new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(p)); print("StartingS"); server.serve();}
+\orangetext{Thrift C:}
+\lstinline{public class MathematicClient {public Integer add(Integer add1, Integer add2) {TTransport transport; try {transport = new TSocket(mIpServer, mPort); TProtocol protocol = new TBinaryProtocol(transport); MathematicsService.Client c=new MathematicsService.Client(protocol); transport.open(); Integer addResult=c.add(add1, add2); return addResult; catch (TTransportException TException){finally {transport.close();}
+%
+%
+%
+\\
+\redtext{\hlgray{Apache Thrift:}framwork, applied Hadoop and HBase}
+\orangetext{Workaround like Protocol Buffers, but starting with .thrift file}
+\btext{\hlgray{++:}}
+\hlgray{
+Multi protocols to serve diff. purposes(binary, JSON), 
+RPC library,
+RPC transport
+Open source, 
+widely used, 
+Versioning,
+Streaming,
+Compile to multi PL(C\#,PHP,Ruby),
+data structures(Map, Set, List, Excep),
+RPC implementation}
+\btext{\hlgray{--:}}
+\hlgray{
+No Dyamic Binding
+}
+\bluetext{\hlgray{.thrift file:}}
+\lstinline{struct Forecast{1: string weekday 2: i32 temperature 3: list<string> tags//]}
+\hlgray{
+fieldTag(4bit)=1, type(4bit)=8(string)
+:0001 1000
+$\rightarrow$}
+\redtext{18, 06(length), 6D 6F 6E 64 61 79}
+\hlgray{("monday", utf8, 0x);
+fieldTag=2,type=5(int32)
+:0010 0101
+$\rightarrow$}
+\redtext{25, 0E};
+\hlgray{
+FieldTag=3,type=9(list)
+:0011 1001
+$\rightarrow$}
+\redtext{39, 28}(0010(2 items$\rightarrow$2) 1000(string$\rightarrow$8)), 
+\redtext{05, 73 75 6E 6E 79}(sunny") 
+\redtext{03, 64 72 70}("dry"), \redtext{00}
+\\
+\rtext{Variable Num encoding Protobuf Protocol:}
+\bluetext{last 8 bit with most significant bit 0}
+\hlgray{
+fieldTag(5bit)=1, type=0(Var-int)
+:00001 000
+$\rightarrow$}
+\redtext{08, d0(\bluetext{1}1010000) 91(\bluetext{1}0010001) 32(\bluetext{0}0110010)}
+\hlgray{$\rightarrow$ 821456;}
+\hlgray{
+fieldTag(5bit)=1, type=0(Var-int)
+:00001 000
+$\rightarrow$}
+\redtext{08, 9f(\bluetext{1}0011111) a3(\bluetext{1}0100011) 64(\bluetext{0}1100100)}
+\hlgray{$\rightarrow$ -821456 ZigZag:1642911=|-821456|*2 - 1;}
+%
+%
+%
+% \\
+% \redtext{Apache Avro}
+% \bluetext{schema-based SY},
+% data with schema saved in binary format,
+% JSON is used to declare data structures
+% \orangetext{Workaround like Protocol Buffers, but starting with .avsc file(JSON)}

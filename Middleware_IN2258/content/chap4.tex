@@ -1,12 +1,126 @@
-\section{C4-Naming}
-\rtext{NamingService} DNS(DomainNameSystem) $\rightarrow$ url to IP of host serving this domain
-\textbar A world-wide distributed database of name servers
-
+\section{Naming, Directory}
+\rtext{Naming Service}
+\orangetext{Collections(Naming Contexts) of <Name, Attribute> Pairs,
+resolve name to physical address,}
+Decouple logical\& physical concepts.
+\redtext{Use Case:}
+ID of address or attribute for name\bluetext{DNS},
+ID of machine for service\bluetext{RPC},
+ID of machine for obj\bluetext{RMI}.
+\\
+\redtext{DNSDomain Name SY}
+$\rightarrow$
+\orangetext{url to IP of host} serving this domain.
+\orangetext{Map domain names to IP},
+world-wide distributed DB of \orangetext{name servers}
+\textbar
+\redtext{Types of Domain Names:}
+\bluetext{Root domain:}
+top of tree unnamed level\greentext{(.)}
+\bluetext{Top level do.:}
+country/region or organization
+\greentext{.de}
+\bluetext{Second level do.}
+Variable-length names organization
+\greentext{tum.de}
+\bluetext{Subdomain:}
+Additional namespace
+\greentext{in.tum.de}
+\bluetext{Host or resource name}
+leaf in DNS tree, a specific resource
+\greentext{host-a.in.tum.de}
+\bluetext{DNS follow this top down .de $\rightarrow$ server.in.tum.de}
+\textbar
+\redtext{Name S,DNS S:}
+Caches result,
+\bluetext{Authoritative name S}
+responsible for domain, each domain has >= one,
+Maintains list DNS records in zone file
+\bluetext{Non-authoritative name S}
+Receives info about domains from other S
+Forwards queries, answers with cached result.
+\textbar
+\redtext{Name resolution types:}
+\bluetext{Recursion:}
+C DNS req.1
+$\leftrightarrow$
+DNS S1 req.2,resp.4
+$\leftrightarrow$
+DNS S2 resp.3
+\bluetext{Iteration:}
+C DNS req.1
+$\leftrightarrow$
+DNS S1 add from S2,
+C DNS req.3
+$\leftrightarrow$
+DNS S2 DNS resp.
+\\
+\rtext{Directory services}
+Shared info SY infrastructure in DB,
+Serve to locate, manage, administer, and organizing networked resources,
+Look up entries match attribute.
+\bluetext{vs DB:}
+Directory info read often than write;
+Data stored redundantly better performance;
+S Distributed hierarchical.
+\bluetext{Naming vs directory services:}
+white page, look up phone number by name
+\orangetext{Map<String, Attr>}
+\redtext{VS}
+yellow page,look up by attributes
+\orangetext{Map<String, Map<Attr>>}
+\textbar \textbar
+\bluetext{LDAP:}
+Lightweight directory access protocol,
+directory information tree DIT,
+node: directory information base DIB.
+\greentext{Root$\rightarrow$de$\rightarrow$structure net
+$\rightarrow$Sales\textbackslash Dev.\textbackslash Support
+$\rightarrow$Employee},
+\orangetext{Operations:}
+Add(to DIT)
+,Bind
+,Delete(only leaf),
+Search and compare,
+Modify,
+Modify DN
+\bluetext{UDDI:}
+Universal Description, Discovery and Integration
+\orangetext{Functions:}
+White pages:
+Address, contact, and known identifiers;
+Yellow pages:
+Industrial categorizations based on standard taxonomies;
+Green pages:
+Technical info about services and reference to WSDL description
+\bluetext{JNDI:}
+Java Naming and Directory Interface,
+Allows Java clients to discover and look up objects via name,
+service provider interface,
 \section{WebService}
-\rtext{SOAP}Simple Object Access Protocol
-Message format: Envelope(Enclosing entity of a message,Defines namespace)
-Header(Contains metadata for the body,Many WS-* extensions add additional information here)
-Body(Contains the payload, Further specifications define the body structure)
-\rtext{RPCvsDocumentStyle}
-SOAP message is constructed in a specific way, call the Web service just like a normal function, Body of message contains parameters and method name as wrapper element,marshalling/unmarshalling is part of the standard
+\rtext{SOAP}
+Simple Object Access Protocol
+Msg format: 
+\bluetext{Envelope}
+Enclosing entity of Msg, Defines namespace
+\bluetext{Header}
+Contains metadata for the body, 
+Many WS-* extensions
+\bluetext{Body}
+Contains the payload, 
+Further specifications define body structure
+\rtext{RPC vs DocumentStyle}
+SOAP Msg constructed in a specific way, 
+call the Web service, 
+Body of Msg contains para. and method name 
+as wrapper element,
+marshalling/unmarshalling
+\\
+\rtext{RESTful:}
+Representational State Transfer,
+architectural style distr. SY
 \textbar contains no restrictions, Message body is a XML document, C/S handles the marshalling/unmarshalling
+\hlgray{XML Schema Data Model for web service:}
+\lstinline{<schema targetNamespace="http://company.com/datamodel.xsd"xmlns= "http://www.w3.org/2000/10/XMLSchema"xmlns:dm="http://company.com/datamodel.xsd"><complexType name="customerType"><all><element name="customerId" type="integer"/><element name="date" type="date"/><element name="name" type="string"/><element name="address" type="dm:addressType"/></all></complexType><complexType name="addressType"><all><element name="city" type="string"/></all></complexType><complexType name="orderType"><all><element name="items"><complexType><sequence><element name="item" maxOccurs="unbound" type="dm:itemType"/></...>}
+\hlgray{WSDL file for web service interface:}
+\lstinline{<definitions name="CustomerService"targetNamespace="http://company.com/customerservice.wsdl"xmlns:ws="http://company.com/customerservice.wsdl"xmlns:dm=" http://company.com/datamodel.xsd"xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"xmlns="http://schemas.xmlsoap.org/wsdl/"><message name="AddItemToOrderInput"><part name="orderId" element="xsd:integer"/><part name="item" element="dm:itemType"/></><message name="AddItemToOrderOutput"><part name="order" element="xsd:boolean"/></><portType name="CustomerServicePortType"><operation name="AddItemToOrder"><input message="ws:AddItemToOrderInput"/><output message="ws:AddItemToOrderOutput"/></></><binding name="CustomerServiceSoapBinding"type="ws:CustomerServicePortType"><soap:binding style="wsdl:document"transport="http://schemas.xmlsoap.org/soap/http"/></><service name="CustomerService"><documentation>Customer Service</documentation><port name="CustomerServicePort"binding="cs:CustomerServiceSoapBinding"><soap:address location="http://company.de/customerservice"/>}

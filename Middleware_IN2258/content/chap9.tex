@@ -1,38 +1,147 @@
 \section{Publish/Subscribe}
+\redtext{Enterprise Application Integration EAI:}
+Order Entry
+to
+Order Scheduling
+\&
+Credit Validation
+to
+Order Release
+to
+Allocation
+to 
+Warehouse Management SY
+to
+Accounts Receivable
+\bluetext{Required:}
+Msg dissemination via bus;
+De-coupled operation;
+Dynamic evolution;
+Location transparency;
+Reliable message delivery;
+Certified message delivery;
+Fault tolerance;
+Distributed event-based processing;
+Event detection 
+dissemination 
+filtering 
+correlation 
+\redtext{Key of Pub/Sub:}
 Many-to-many:
-For communication,
+For comm.,
 For coordination,
-$M$: data sources (publishing C) $n$: data sinks (subscribing C)
-C \bluetext{decoupled} and do not know each other $\leftrightarrow$ tightly coupled Observer Design Pattern:
-Removes explicit dependencies, 
-Reduces coordination synchronization, 
-Increases scalability of dis. SY,
-Creates highly dynamic(frequent add/remove) decentralized SY,
-Decoupling in three dimensions(\bluetext{Space Dec.}
-No need for C (publishers \& subscribers) to hold references or know each other, C physically distributed,
-\bluetext{Time Dec.}C not to be available same time(Event in Buffer)
-\bluetext{Synchronization Dec.}Control flow not blocked by the interaction)
-\includegraphics[width=\linewidth]{chap9_1.png}
-\btext{Pub/Sub Models}: Content-based, Channel-based(non-hierarchical), Topic-based(hierarchical, sport new USA)
-\btext{Matching\&Filtering in Content-based}:
-event(Publication) $e$, set of subscriptions $S$, find all subscription $s\in S$ matching $e$.
-\bluetext{Subscription}: Boolean function over predicates
-\bluetext{Publication(event)}: Sets of attribute-value pairs
-\btext{Two-phased Matching Algo.}
-1.Match all predicates (\bluetext{Predicate Matching Phase})
-2.Match subscriptions from results of Phase 1 (\bluetext{Subscriptions Matching Phase})
-\btext{1.Predicate Mat.P.}:  set $P$ of predicates and event $e$, 
-identify all satisfied predicates $p$ of $P$ $\rightarrow$ Predicate bit vector,
-Hash key = attribute name
-\bluetext{General Purpose Data Structure}: for single attribute: 4 ordered linked list(b tree) for $=, <, >, !=$ operators, $O(n)$ all events \& lists
-\bluetext{Finite Predicate Value Domain Types}: huge matrix eg $1000 * 4\;for Price \in [1, 1000]$,
-1000 for price, 4 for operators, entry lookup $m[i][j]=O(1)$
-\btext{2.Subscription Mat.P.: Counting Algo}
-\textbar
-\btext{Content-based Routing}
-1.Advertisements (schema or types,data sources) \redtext{Boradcast},
-2.Publications \& events (data sources))
+$M$: data sources (publishing C)
+$n$: data sinks (subscribing C)
+\greentext{+}
+C \bluetext{decoupled},
+not know each other
+$\leftrightarrow$
+\bluetext{tightly coupled Observer Design Pattern:}
+No explicit dependencies, 
+No coordination synchronization, 
+Increase scalability of dis. SY,
+Create highly dynamic(frequent add/remove) decentralized SY,
+Decoupling in \orangetext{three dimensions:}
+\greentext{Space Dec.}
+No need for C (publishers \& subscribers) to hold references, C physically distributed,
+\greentext{Time Dec.}
+C not available same time(Event in Buffer)
+\greentext{Syn. Dec.}
+Control flow not blocked by interaction
+\redtext{Decoupling in Diff. Interaction}
+\begin{tabular}{c|c|c|c}
+  \hline			
+  Abstrac.&SpD&TD&SyD\\
+  \hline
+  MagPassingP2P&N&N& Producer\\
+  PRC/RMI&N&N&Pro.\\
+  Asy.PRC/RMI&N&N&Y\\
+  FuturePRC/RMI&N&N&Y\\
+  OberverPattern&N&N&Y\\
+  TupleSpace&Y&Y&Pro.\\
+  MsgQueue Pull&Y&Y&Pro.\\
+  Pub/Sub&Y&Y&Y\\
+  \hline
+\end{tabular}
+\redtext{Pub/Sub Models:}
+ContentBased, 
+ChannelBased(fixed, nonhierarchical), 
+TopicBased(SubjectBase, hierarchical, sport news USA)
+\redtext{Matching\&Filtering Content-based:}
+event(Publication) $e$, 
+set of subscriptions $S$, 
+find all subs. $s\in S$ match $e$.
+\bluetext{Subscription:}
+Boolean func over predicates
+\bluetext{Publication(event):}
+Sets of attribute-value pairs
+\\
+\rtext{Two-phased Matching Algo.}
+1.Match all predicates 
+\bluetext{Predicate Matching Phase}
+2.Match subscri. on last Phase 
+\bluetext{Subscriptions Matching Phase}
+\redtext{1.Predicate Mat.P.:}
+set $P$ of predicates, 
+event $e$, 
+identify all true pred. $p$ of $P$
+$\rightarrow$
+\orangetext{Predicate bit vector},
+Hash key: attribute name
+\bluetext{General Purpose Data Structure:}
+for single attr.:
+4 ordered linked list(b tree) for
+$=, <, >, !=$
+operators,
+$O(n)$ all events\&lists
+\bluetext{Finite Predicate Value Domain Types:}
+big matrix \greentext{eg 1000*4 for Price$\in$[1, 1000],
+1000 for price, 4 for operators}, entry lookup $m[i][j]=O(1)$
+\redtext{2.Subscription Mat.P.: Counting Algo}
+\greentext{
+S1:A<6\&B==6, S2:A<6\&B==1
+$\rightarrow$
+p1:A<6,p2:B==6,p3:B==1
+$\rightarrow$
+pred. vector:p1(S1,S2),p2(S1),p3(S2)
+come Event(A,5),(B,6)
+$\rightarrow$
+S1 in p1,p2 matched \#=2=\#pred. of S1}
+Data Structure:
+pred. vector,
+bit matrix.
+list
+\redtext{Propagation Algo:}
+Match with other pred. base on Cluster.
+\greentext{Same as above,
+bit vector 110 for p1,p2,p3;
+Cluster:S1,S2 with p1,p2,p3
+but p3 not matched, delete s2}
+\\
+\rtext{\hlgray{Content-based Routing}}
+\bluetext{\hlgray{1.Advertisements}}
+\hlgray{schema or types,data sources} 
+\redtext{\hlgray{Boradcast}},
+\bluetext{\hlgray{2.Publications\&events}}
+\hlgray{data sources}
 \begin{CJK*}{UTF8}{gbsn}
 \redtext{根据上一步Broker's Subscription走}
 \end{CJK*},
-3.Subscriptions (query, data sinks)
+\redtext{\hlgray{if s1 subscribers [p,>,120],[t,>,20]=[p,>,120]$\wedge$[t,>,20]}}
+\bluetext{\hlgray{3.Subscriptions}}
+\hlgray{query, data sinks: if empty$\{\emptyset\}\rightarrow\emptyset$}
+\redtext{\hlgray{if p1 publish [p,120],[t,20] =[p,120]$\vee + $[t,20]}}
+\bluetext{\hlgray{Composite Subscription:}}
+\hlgray{event correlation, in network filtering,
+detection of composite events}
+\begin{CJK*}{UTF8}{gbsn}
+\redtext{Cached 但是只能用一次, Routing Table里面不能带OR AND 必须拆开写}
+\end{CJK*}
+\redtext{\hlgray{Topic Based Routing:}}
+\bluetext{\hlgray{Publisher:}}
+\hlgray{[l1,=,business][l2,=,*][l3,=,*][n,=,*]}
+\bluetext{\hlgray{Subscriber:}}
+\hlgray{[l1,=,business][l2,=,market][l3,=,stocks], 
+[l1,=,business]}
+\bluetext{\hlgray{Publishment:}}
+\hlgray{[l1,business][l2,null][l3,null][n,n1]}

@@ -144,13 +144,13 @@ In \orangetext{Unix any I/O} by reading/writing from/to file descriptors.
 \\
 \rtext{SetUp,UseSockets}
 \orangetext{S Create:}
-\lstinline{final ServerSocket ss = new;/*localhost only*/ ss.bind(new InetSocketAddress("0.0.0.0", port)); while (true) {Socket clientSocket = ss.accept();/*Block till C*/}
+\lstinline{final ServerSocket ss=new;/*localhost only*/ss.bind(new InetSocketAddress("0.0.0.0", port));while(true){Socket c=ss.accept();/*Block till C*/}
 \orangetext{C connect S:}
-\lstinline{Socket s = new; s.connect(new InetSocketAddress("127.0.0.1", port)); PrintWriter output = new PW(s.getOutputStream()); BufferedReader input = new BR(new InputStreamReader(s.getInputStream())); output.write(req + "\r\n");/*to S*/ output.flush();}
+\lstinline{Socket s = new;s.connect(new InetSocketAddress("127.0.0.1", port));PrintWriter output=new(s.getOutputStream());BufferedReader input=new(new InputStreamReader(s.getInputStream()));output.write(req + "\r\n");/*to S*/output.flush();}
 \orangetext{S handle req.:}
-\lstinline{/*in while true*/ BufferedReader in = new BR(new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING)); PrintWriter out = new PW(new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING)); String firstLine; while ((firstLine = in.readLine()) != null) /*req from C*/ String res = kv.process(firstLine); out.write(res); /*to C*/ out.flush();}
+\lstinline{/*in while true*/BufferedReader in=new(new InputStreamReader(clientSocket.getInputStream(),Constants.TELNET_ENCODING));PrintWriter out=new(new OutputStreamWriter(clientSocket.getOutputStream(),Constants.TELNET_ENCODING));String firstLine;while((firstLine=in.readLine())!=null)/*req from C*/String res=kv.process(firstLine);out.write(res);/*to C*/out.flush();}
 \orangetext{C read resp.:}
-\lstinline{/*after C connect S*/String response = input.readline(); s.close();}
+\lstinline{/*after C connect S*/String response=input.readline();s.close();}
 \orangetext{S shutdown:}
 \lstinline{ss.close();}
 \adjincludegraphics[width=1\linewidth, trim={0 0 0 {.12\height}},clip]{chap1_1.png}
@@ -159,7 +159,7 @@ In \orangetext{Unix any I/O} by reading/writing from/to file descriptors.
 \hlgray{C\&S keep comm. session open and exchange Msg until one of them closed.}
 \orangetext{\hlgray{accept:}} \hlgray{a} \lstinline{while loop}:
 \orangetext{\hlgray{create a new socket (and th.) for commu. with C}}
-\\
+% \\
 \includegraphics[width=.49\linewidth]{client_FSM.pdf}
 \includegraphics[width=.49\linewidth]{server_FSM.pdf}
 \rtext{K V Server:} C get, set Table in S: 
@@ -168,19 +168,38 @@ In \orangetext{Unix any I/O} by reading/writing from/to file descriptors.
 \textbar
 \redtext{C:}
 \orangetext{C.java:}
-\lstinline{KVTable<AssessmentInformation> kvc = new KVTable<~>(); kvc.put("middleware", new AssessmentInformation(1.3);}
+\lstinline{KVTable<AssessmentInformation> kvc=new;kvc.put("middleware" new AssessmentInformation(1.3);}
 \orangetext{KVTable.java in put():}
-\lstinline{String jsonStr = gs.toJson(value); String enc_value = encodeBase64(jsonStr); this.activeConnection.write("PUT " + this.table + " " + key + " " + enc_value + "\r\n");}
+\lstinline{String jsonStr=gs.toJson(value);String enc_value=encodeBase64(jsonStr);this.activeConnection.write("PUT "+this.table+" "+key+" "+enc_value+"\r\n");}
 \orangetext{ActiveConnection.java in write():}
-\lstinline{PrintWriter output...; output.write(..); output.flush();}
+\lstinline{PrintWriter output...;output.write(..);output.flush();}
 \redtext{S:}
 \orangetext{ConnectionHandleThread.java}
-\lstinline{BufferedReader in = new BufferedReader(new ISReader(clientSocket.getIS(),...)); String line = in.readLine();}
+\lstinline{BufferedReader in=new(new ISReader(clientSocket.getIS(),...));String line=in.readLine();}
 \orangetext{KVStore.java}
-\lstinline{StringTokenizer st = new StringTokenizer(firstLine, " \r\n"); String command = st.nextToken(); if (command == "GET")/*GET PUT else*/}
+\lstinline{StringTokenizer st=new(firstLine," \r\n");String command=st.nextToken();if(command=="GET")/*GET PUT else*/}
 \orangetext{ConnectionHandleThread.java}
-\lstinline{PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(),...)); out.write(res);/*to C*/ out.flush();}
+\lstinline{PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(),...));out.write(res);/*to C*/out.flush();}
 \\
+\rtext{\hlgray{Sequence Dia multi th:}}
+\btext{\hlgray{n times C and Th.}}
+\textbar
+\bluetext{\hlgray{Ci to S:}} \hlgray{connect}, 
+\bluetext{\hlgray{S to Th.i}}, 
+\bluetext{\hlgray{Ci to S to Th.i:}} \hlgray{getTime()},
+\bluetext{\hlgray{Th.i to S to C:}} \hlgray{20:00}
+\\
+\rtext{\hlgray{S Create:}} 
+\hlgray{same as single th. above}
+\orangetext{\hlgray{S Create}}
+\bluetext{\hlgray{instead of block IO in while:}}
+\lstinline{public void provideService(){int port=8883;ServerSocket s=new();s.listen(port);while(true){Socket c=s.accept();HandleRequest hr=new(client);hr.start();}  
+\\
+\rtext{\hlgray{HandleRequest as Th.:}}
+\lstinline{class HandleRequest extends Thread{private Socket c;HandleRequest(Socket c){c=c;/*]*/run(){String msg=c.receive()if(msg=="getTime"){String res=getTime();c.send(res);c.close();}
+\\
+\rtext{\hlgray{C:}}
+\lstinline{class Client{public void sendMessage(){String ip="112.32.86.113";int port=8883;String msg="getTime";Socket c=new();c.connect(ip,port);c.send(msg);String res=c.receive();c.close();print res;}
 \mysubsection{NIO(NonblockingSockets),multi.threaded}
 \\
 \redtext{Synchronous}: 
@@ -221,53 +240,33 @@ SocketChannel (TCP, support concurrent read/write),
 ServerSocketChannel (TCP));
 Responsibility(\orangetext{Read, write buffer})
 \\
-\rtext{\hlgray{Sequence Dia multi th:}}
-\btext{\hlgray{n times C and Th.}}
-\textbar
-\bluetext{\hlgray{Ci to S:}} \hlgray{connect}, 
-\bluetext{\hlgray{S to Th.i}}, 
-\bluetext{\hlgray{Ci to S to Th.i:}} \hlgray{getTime()},
-\bluetext{\hlgray{Th.i to S to C:}} \hlgray{20:00}
-\\
-\rtext{\hlgray{S Create:}} 
-\hlgray{same as single th. above}
-\orangetext{\hlgray{S Create}}
-\bluetext{\hlgray{instead of block IO in while:}}
-\lstinline{HandleRequest hr = new HandleRequest(client); hr.start();}
-\\
-\rtext{\hlgray{HandleRequest as Th.:}}
-\lstinline{class HandleRequest extends Thread{private Socket c;HandleRequest(Socket c){c = c;/*]*/run(){String msg = c.receive()if(msg == "getTime"){String res = getTime();c.send(res);c.close();}
-\\
-\rtext{\hlgray{C:}}
-\lstinline{class Client{public void sendMessage(){String ip'112.32.86.113'; int port = 8883; String msg = "getTime"; Socket c = new Socket(); c.connect(ip, port); c.send(msg); String res = client.receive(); client.close(); print res;}
-\\
 \rtext{\hlgray{Sequence Dia single th:}}
 \btext{\hlgray{n times C}}
 \textbar
 \bluetext{\hlgray{Ci to S:}} \hlgray{connect}, 
-\bluetext{\hlgray{Ci to S to Th.i:}} \hlgray{getTime()},
+\bluetext{\hlgray{Ci to S:}} \hlgray{getTime()},
 \hlgray{all C sent, S start with Zeitraum to process n req.}
 \bluetext{\hlgray{Th.i to S to C:}} \hlgray{20:00 resp. same order as sent req.}
 \\
+\orangetext{\hlgray{handleRequest():}}
+\lstinline{public byte[] handleRequest(byte[] input){return Bytes.toBytes(System.nanoTime());}
 \redtext{\hlgray{Selector:}} 
 \hlgray{select multi asyn. Channels to match a EventLoop}
 \orangetext{\hlgray{Setup channel:}}
-\lstinline{Hashmap<SocketChannel, byte[]> pendingData; ServerSocketChannel ssc = new SSC(); ssc.connect("127.0.0.1", 8883); Selector selector = new Selector(); ssc.register(selector, SelectionKey.ACCEPT);}
-\rtext{OR}
-\lstinline{ServerSocketChannel ssC = SSC.open();ssC.configureBlocking(false);InetSocketAddress isa  = new ISA(InetAddress.getByName("localhost"), 5559);ssC.socket().bind(isa);}
-\orangetext{\hlgray{handleRequest():}}
-\lstinline{public byte[] handleRequest(byte[] input){return Bytes.toBytes(System.nanoTime());}
+\lstinline{Hashmap<SocketChannel,byte[]>pendingData;ServerSocketChannel ssc=new();ssc.connect("127.0.0.1",8883);Selector selector=new();ssc.register(selector,SelectionKey.ACCEPT);}
+\rtext{!OR!}
+\lstinline{ServerSocketChannel ssC=SSC.open();ssC.configureBlocking(false);InetSocketAddress isa=new ISA(InetAddress.getByName("localhost"),5559);ssC.socket().bind(isa);}
 \orangetext{\hlgray{Eventloop:}}
-\lstinline{public void start() throws IOException {while (true) try {selector.select();/*get List*/ Iterator selectedKeys = selector.selectedKeys().iterator(); while (selectedKeys.hasNext()) {SelectionKey key = (SelectionKey) selectedKeys.next(); selectedKeys.remove(); if (key.isAcceptable()) {ServerSocketChannel channel = (SSC)key.channel(); SocketChannel sC = channel.accept(); sC.configureBlocking(false); sC.register(this.selector, SelectionKey.READ);/*wake up when sth to read*/ else if (key.isReadable()) {SocketChannel channel = (SC)key.channel(); byte[] res = handleRequest(channel.read()); pendingData.add(channel, res); key.interesOps(SelectionKey.WRITE); else if (key.isWritable()) {SocketChannel channel = (SC)key.channel(); data = pendingData.get(channel); if(data == (byte[])"getTime"){channel.write((byte[])getTime()); key.interestOps(SelectionKey.READ); catch (e) {e.printStackTrace();}
+\lstinline{public void start() throws IOException{while(true) try{selector.select();/*get List*/Iterator selectedKeys=selector.selectedKeys().iterator();while(selectedKeys.hasNext()){SelectionKey key=(SelectionKey)selectedKeys.next(); selectedKeys.remove();if(key.isAcceptable()){ServerSocketChannel channel=(SSC)key.channel();SocketChannel sC=channel.accept();sC.configureBlocking(false);sC.register(this.selector,SelectionKey.READ);/*wake up when sth to read*/else if(key.isReadable()){SocketChannel channel=(SC)key.channel();byte[] res=handleRequest(channel.read());pendingData.add(channel,res);key.interesOps(SelectionKey.WRITE);else if(key.isWritable()){SocketChannel channel=(SC)key.channel();data=pendingData.get(channel); if(data==(byte[])"getTime"){channel.write((byte[])getTime());key.interestOps(SelectionKey.READ); catch (e){e.printStackTrace();}
 % \orangetext{Register selector:}
 % \lstinline{Selector s = SelectorProvider.provider().openSelector(); serverChannel.register(s, SelectionKey.OP_ACCEPT); private void accept(SelectionKey key) throws IOException {ServerSocketChannel sSC = (SSC) key.channel(); SocketChannel sC = sSC.accept(); sC.configureBlocking(false); sC.register(this.s, SelectionKey.OP_READ);/*wake up when sth to read*/}
 \orangetext{Read:}
-\lstinline{private void read(SelectionKey key) throws IOException {SocketChannel sC = (SC) key.channel(); this.readBuffer.clear(); int numRead = sC.read(this.readBuffer);/*in Buffer*/ if (numRead == -1) { key.channel().close(); key.cancel(); return;/*]*/byte[] dataCopy = new byte[numRead]; arraycopy(this.readBuffer.array(), 0, dataCopy, 0, numRead); handleRequest(sC, dataCopy);}
+\lstinline{private void read(SelectionKey key) throws IOException{SocketChannel sC=(SC)key.channel();this.readBuffer.clear();int numRead=sC.read(this.readBuffer);/*in Buffer*/if(numRead==-1){key.channel().close();key.cancel();return;/*]*/byte[] dataCopy=new byte[numRead];arraycopy(this.readBuffer.array(),0,dataCopy,0,numRead);handleRequest(sC,dataCopy);}
 \orangetext{Write:}
-\lstinline{private void write(SelectionKey key) throws IOException { SocketChannel sC = (SC) key.channel(); List queue = (List) this.pendingData.get(sC); while (!queue.isEmpty()) { ByteBuffer buf = (ByteBuffer) queue.get(0); socketChannel.write(buf); if (buf.remaining() > 0) {break;/*]*/queue.remove(0);/*]*/ if (queue.isEmpty()) {key.interestOps(SelectionKey.OP\_READ);/*]*/}
+\lstinline{private void write(SelectionKey key) throws IOException{SocketChannel sC=(SC)key.channel();List queue=(List)this.pendingData.get(sC);while(!queue.isEmpty()){ByteBuffer buf=(ByteBuffer) queue.get(0);socketChannel.write(buf);if(buf.remaining()>0){break;/*]*/queue.remove(0);/*]*/if(queue.isEmpty()){key.interestOps(SelectionKey.OP\_READ);/*]*/}
 \\
 \redtext{\hlgray{Protocol Design:}}
-\hlgray{complex number as string: c = (a, b, n)}, 
+\hlgray{complex number as string: c=(a,b,n)}, 
 $n \in {s,p}$,
 $op \in \{add, sub, mul, div, poloar\}$,
 \orangetext{\hlgray{C to S req.:}}\hlgray{m<c1;c2;op>, 

@@ -1,29 +1,83 @@
-\section{7QueuingTheory}
-ArrivalRate$\lambda=\frac{1}{mean inter-arrival time}$
-\textbar
-ServiceRate $\mu=\frac{1}{mean service time}$
-\textbar
-Q.Formation $\equiv \lambda > \mu$
-\textbar
-Stability $\equiv \lambda < \mu$: busy,idle alternating
-\textbar
-Throughput:average \# completed jobs per unit of time $\rightarrow$ 0(stable) to maximumThr.(unstableQ.,best performance) 
-\textbar
-ServerUtilization $= \lambda * \mu$: S busy time percent
-\textbar
-A/S/n: arrival process/ service process/\# S
-\textbar A,S:M (Markov,Exponential probability density),
+\section{Queuing Theory}
+to solve Elasticity, 
+to Scale Web Service, 
+to increase throughput
+(not known: rate of requests, service time)
+\redtext{Performance Metrics:}
+Mean waiting time,
+Server utilization,
+Throughput,
+Average \# customers waiting,
+Distribution of \# waiting customers
+\redtext{Queuing SY: Stochastic Process:}
+\bluetext{arrival, service process:},
+inter-arrival, service time modeled as stochastic probabilistic distribution
+%
+%
+%
+\\
+\redtext{\hlgray{ArrivalRate}}
+\hlgray{$\lambda=\frac{1}{mean inter-arrival time}$}
+\redtext{\hlgray{ServiceRate}}
+\hlgray{$\mu=\frac{1}{mean service time}$}
+\redtext{Q.Formation}
+$\equiv \lambda > \mu$
+\redtext{Stability}
+$\equiv \lambda < \mu$:
+busy,idle time alternate
+\redtext{Throughput:}
+average \# completed pertime
+$\rightarrow$
+\orangetext{ArrivalRate}0(stable) to max Throughput(unstable, best performance) 
+\redtext{Server Utilization}
+$\rho= \lambda / \mu$:
+S busy time percent
+\redtext{A/S/n:}
+\bluetext{arrival process/ service process/\# S}
+A,S:M (Markov,Exponential probability density),
 D (Deterministic, All customers have the same value),
-G (General, Any arbitrary probability distribution)
-\textbar
-M/M/1: Infinite population of customers, Infinite q.capacity, FIFO
-\textbar
-Exponential distribution: $f(x)=\lambda e^{-\lambda x}$, mean$= 1/\lambda$
-\textbar
-Poisson arrival process(arrivalProcess): $P_n(t) = \frac{(\lambda t)^n}{n!}e^{-\lambda t}$,
-\textbar
-Traffic intensity (occupancy): $\rho = \lambda/\mu$, n customers: $Prob[n] =\rho^n(1-\rho)$, empty: $Prob[n=0]=1-\rho$
-\textbar
-Mean \# customers: $N = \frac{\rho}{1-\rho} = \frac{\lambda}{\mu - \lambda} = L$
-\textbar
-Total waiting time (including service time): $T=\frac{1}{\mu - \rho}$
+G (General, arbitrary proba. distri.)
+\redtext{M/M/1:}
+Infinite population of customers, Infinite q.capacity, FIFO
+\bluetext{Exponential distribution:}
+$f(x)=\lambda e^{-\lambda x}$,
+$\lambda$:arrival\redtext{OR}service rate,
+mean$= 1/\lambda$
+\redtext{Poisson arrival process(arrivalProcess):}
+$P_n(t) = \frac{(\lambda t)^n}{n!}e^{-\lambda t}$,
+n arrivals in period from 0 to t,
+$\lambda$: total average arrival rate
+\# large,
+Impact of single small,
+All independent
+\\
+\rtext{Traffic intensity (occupancy):}
+$\rho = \lambda/\mu$, if stable $\rho$<1
+\bluetext{prob n customers:}
+$Prob[n] =\rho^n(1-\rho)$
+\bluetext{\hlgray{prob empty, S idle:}}
+\hlgray{$Prob[n=0]=1-\rho$}
+\bluetext{Throughput:}
+$\lambda$
+\bluetext{\hlgray{Mean \# customers:}}
+\hlgray{$N = \frac{\rho}{1-\rho} = \frac{\lambda}{\mu - \lambda} = L=\lambda*W$}
+\bluetext{\hlgray{Total waiting time}\redtext{\hlgray{+}}\hlgray{service time:}}
+\hlgray{$T=\frac{1}{\mu - \lambda}=W$}
+\\
+\redtext{Networks of queues:}
+Tandem q.,
+Topology q.
+\redtext{\hlgray{Traffic Flows(no back flow):}}
+\begin{tabular}{|l|l|l|l|}
+  \hline			
+  pij   & 1   & 2       & Out \\
+  \hline
+  1     & 0   & 10*.3   & 10*.7\\
+  2     & 0   & 0       & 8 \\
+  Out   & 10  & 5       & 0\\
+  \hline
+  Total & 10  & 8       & 15 \\
+  \hline  
+\end{tabular}
+\redtext{\hlgray{Back Flow:}}
+\begin{CJK*}{UTF8}{gbsn}方程\end{CJK*}

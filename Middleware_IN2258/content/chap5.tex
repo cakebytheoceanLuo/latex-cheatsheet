@@ -234,33 +234,70 @@ $R$:ID of most recent request by the C (stored by C)}}:
 \bluetext{\hlgray{1.C ReqTX not commit}}
 \hlgray{
 $R\neq R_e$
-resend, Empty queues, old $R_e$ in QM}
-\bluetext{\hlgray{2.C ReqTX committed but S TX not$R_e=R\neq R_d$}}
+during TX1, resend, Empty queues, old $R_e$ in QM}
+\bluetext{\hlgray{2.C ReqTX committed but S TX not$R_e=R\neq R_d$, in ReqQueue like(18,ACK)}} 
 \hlgray{
-Req in ReqQue(req.que.size!=0,dequeue)}
+Req in ReqQue(req.que.size!=0, after TX1, dequeue)}
 \redtext{OR}
-\hlgray{being processed by S(req.que.size=0,C wait)}
+\hlgray{being processed by S(req.que.size=0, after TX2, C wait)}
 \bluetext{\hlgray{3.S TX committed but C RepTX not}}
 \hlgray{
 Reply in Rep.Que(nonempty, R = $R_e$, QM's C's ReplyID un-match)},
 \bluetext{\hlgray{4.C RepTX committed}}
 \hlgray{
 $R=R_d$
-Successful,continue}
+Successful,after TX3, continue}
 \\
-\redtext{Distributed TXQueuing Two-Phase Commit 2PC:}
+\redtext{\hlgray{Distributed TXQueuing Two-Phase Commit 2PC:}}
 Only \orangetext{Atomicity},
-Coordinator among registered nodes to achieve consensus;
-Coordinator requests all nodes to vote;
-commit, if \orangetext{all} voted to commit;
-abort, if \orangetext{one} voted to abort;
-\bluetext{1.Prepare}
-to commit, voting phase
-Once a participant voted to commit, no longer abort the TX
-\bluetext{2.Commit}
-completion phase;
-\orangetext{commit, after all participants prepared
-Otherwise all abort}
+\bluetext{\hlgray{Coordinator}}
+\hlgray{among registered nodes to achieve consensus
+and requests all nodes to vote;
+commit, if} \orangetext{\hlgray{all}} \hlgray{voted to commit;}
+\hlgray{abort, if} \orangetext{\hlgray{one}} \hlgray{voted to abort;}
+\bluetext{\hlgray{1.Prepare}}
+\hlgray{to commit, voting phase
+Once a participant voted to commit, no longer abort the TX}
+\bluetext{\hlgray{2.Commit}}
+\hlgray{completion phase;}
+\orangetext{\hlgray{commit, after all participants prepared
+Otherwise all abort}}
+\redtext{\hlgray{Sequence Diagram:}}
+\bluetext{Coordinator}
+$\overset{prepare}{\rightarrow}$
+participant 1,2,3
+$\overset{vote:commit}{\rightarrow}$
+\bluetext{Coor.}
+$\overset{commit}{\rightarrow}$
+participants
+$\overset{done}{\rightarrow}$
+\bluetext{Coor.}
+\textbar \textbar \textbar
+\bluetext{Coor.}
+$\overset{prepare}{\rightarrow}$
+participant 1,2,3
+$\overset{vote:abort}{\rightarrow}$
+\bluetext{Coor.}
+$\overset{abort}{\rightarrow}$
+participants
+$\overset{done}{\rightarrow}$
+\bluetext{Coor.}
+\redtext{\hlgray{uncertainty phase:
+when p sended vote:commit until p received abort as global decision}}:
+\bluetext{Uncertain part.} blocked until certain,
+not to abort,
+not to commit because \bluetext{global decision} may be abort,
+try to contact other parti. to find certain one
+(voted abort or known decision),
+can only contact uncertain parti., it is blocked (comm. failure)
+\redtext{\hlgray{Timeout}}
+to cope with failure (lost Msg):
+not requiring consultation of other:
+Coor. abort TX when it timeouts in initial or wait state;
+Coor. resend commit/abort to parti. when timeout to send;
+Parti. aborts TX when it timeout in initial state.
+\bluetext{But} when parti timeouts in prepare,
+consultation required
 %
 %
 %
@@ -277,7 +314,7 @@ Otherwise all abort}
 \hlgray{C byte[] receive():}
 \lstinline{return c.dequeue();}
 \hlgray{S run():}
-\lstinline{while(true) byte[] req=c.dequeue();try Database.store(req);p.enqueue('ACK'.toBytes()) catch(e) p.enqueue('ERROR'.toBytes());}
+\lstinline{while(true){byte[] req=c.dequeue();try{Database.store(req);p.enqueue('ACK'.toBytes()) catch(e){p.enqueue('ERROR'.toBytes());}
 %
 %
 %
@@ -290,7 +327,7 @@ Otherwise all abort}
 \hlgray{C send(byte[] msg):}
 \lstinline{Guid g=Guid.generate();p.enqueue(g,msg);intermediate.add(g,msg);//not in Broker C}
 \hlgray{S run():}
-\lstinline{while(true){Delivery req=c.dequeue();try{Database.store(req);p.enqueue(req.getGuid(),"ACK".toBytes()); catch(e) p.enqueue(req.getGuid(),"ERROR".toBytes());}
+\lstinline{while(true){Delivery req=c.dequeue();try{Database.store(req);p.enqueue(req.getGuid(),"ACK".toBytes()); catch(e){p.enqueue(req.getGuid(),"ERROR".toBytes());}
 %
 %
 %
@@ -314,6 +351,8 @@ Otherwise all abort}
 \hlgray{S:}
 \bluetext{+}
 \lstinline{String serverName}
+\hlgray{S init():}
+\lstinline{/*cf.setHost*/cf.queueDeclare("resp\_q\_broker", Persistent);cf.queueDeclare("s\_q"+serverName, Persistent);p=cf.newProducer("resp\_q\_broker");c=cf.newConsumer("s\_q"+serverName);}
 \hlgray{S run():}
 \lstinline{while(true){Delivery d=c.dequeue(try{Database.store(request);p.enqueue(d.getGuid(),"ACK".toBytes());catch(e) p.enqueue(d.getGuid(),"ERROR".toBytes());}
 %

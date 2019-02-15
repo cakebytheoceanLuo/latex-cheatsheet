@@ -68,7 +68,7 @@ they \bluetext{transfer syntax using encodingRules}
 \redtext{\hlgray{02 for int}};
 \bluetext{\hlgray{tags:}}
 \hlgray{30, 0C, 16, 05, 73 75 6E 6E 79, 16, 03, 64 72 79}
-\redtext{\hlgray{$\rightarrow$ 30 for SEQUENCE\_OF, 12 for all Nums}}
+\redtext{\hlgray{$\rightarrow$ 30 (00 1 10000) for SEQUENCE\_OF, 0C (12) for all Nums}}
 \bluetext{\hlgray{Total:27 B}}
 %
 %
@@ -86,9 +86,9 @@ locked into Java(No support for heterogeneous systems);
 No support for versioning
 (If the serialized class changed eg. new attribute added, update all network nodes)
 \redtext{serialize:obj2bit}
-\lstinline{try{Socket s = new S("localhost", 8022);ObjectOutputStream oos = new OOS(s.getOutputStream()); oos.writeObject(obj);/*write obj stream to socket*/ catch (e) {e.printStackTrace();}
+\lstinline{try{Socket s=new("localhost", 8022);ObjectOutputStream oos=new(s.getOutputStream());oos.writeObject(obj);/*write obj stream to socket*/catch(e){e.printStackTrace();}
 \redtext{deserialize:bit2obj}
-\lstinline{ServerSocket ss = new SS(8022);Socket s = ss.accept();ObjectInputStream ois = new ObjectInputStream(s.getInputStream());obj=(Obj)ois.readObject();}
+\lstinline{ServerSocket ss=new(8022);Socket s=ss.accept();ObjectInputStream ois=new(s.getInputStream());obj=(Obj)ois.readObject();}
 %
 %
 %
@@ -96,9 +96,9 @@ No support for versioning
 \redtext{\hlgray{XML}}
 De facto standard
 \hlgray{XML Schema:} 
-\lstinline{<xsd:element name="forecast"> <xsd:complexType> <xsd:all> <xsd:element name="weekday" type="xsd:string"/> <xsd:element name="temperature" type="xsd:integer"/> <xsd:element name="tags"><xsd:complexType> <xsd:sequence> <xsd:element name="tag" type="xsd:string" maxOccurs=\"unbounded\"/> </xsd:...>}
+\lstinline{<xsd:element name="forecast"><xsd:complexType><xsd:all><xsd:element name="weekday" type="xsd:string"/><xsd:element name="temperature" type="xsd:integer"/><xsd:element name="tags"><xsd:complexType><xsd:sequence><xsd:element name="tag" type="xsd:string" maxOccurs=\"unbounded\"/></xsd:...>}
 \hlgray{XML Document: 116B:}
-\lstinline{<forecast> <weekday>monday</weekday> <temperature>14</temperature> <tags> <tag>sunny</tag> <tag>dry</tag> </..>}
+\lstinline{<forecast><weekday>monday</weekday><temperature>14</temperature><tags><tag>sunny</tag><tag>dry</tag></..>}
 \redtext{XML RPC}
 Interoperable RPC standard,
 Predecessor of SOAP,
@@ -112,7 +112,7 @@ HTTP
 human readable text to \orangetext{transmit data objects};
 JSON databases: MongoDB
 \hlgray{JSON obj:}
-\lstinline{{"forecast":{"weekday":"monday","temperature" :14,"tags":["sunny","dry"]//]]}
+\lstinline{{"forecast":{"weekday":"monday","temperature":14,"tags":["sunny","dry"]//]]}
 \btext{\hlgray{++XML/JSON:}}
 \hlgray{readable,
 defined as standard, 
@@ -132,9 +132,9 @@ avoid complexity
 like XML-RPC using JSON,
 many prog. lang.(JS, C, C++, Java, PHP)
 \bluetext{Req. batch:(protocol version 2.0, methodName req.id)}
-\lstinline{[{"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"/*]*/, {"jsonrpc": "2.0", "method": "notify\_hello", "params": [7]/*]*/, {"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"/*]*/, "id": "5"/*]*/, {"jsonrpc": "2.0", "method": "get\_data", "id": "9"/*]*/]}
+\lstinline{[{"jsonrpc": "2.0","method":"sum","params": [1,2,4],"id": "1"/*]*/,{"jsonrpc":"2.0","method":"notify\_hello","params":[7]/*]*/,{"jsonrpc": "2.0","method":"foo.get","params":{"name":"myself"/*]*/,"id":"5"/*]*/,{"jsonrpc":"2.0","method":"get\_data","id":"9"/*]*/]}
 \bluetext{Resp. Batch:(result,req.id)}
-\lstinline{[{"jsonrpc": "2.0", "result": 7, "id": "1"/*]*/, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"/*]*/, "id": null/*]*/, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"/*]*/, "id": "5"/*]*/, {"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"/*]*/]}
+\lstinline{[{"jsonrpc":"2.0","result": 7,"id":"1"/*]*/,{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"/*]*/,"id":null/*]*/,{"jsonrpc":"2.0","error":{"code":-32601,"message":"MethodNotFound"/*]*/,"id":"5"/*]*/,{"jsonrpc":"2.0","result":["hello", 5],"id":"9"/*]*/]}
 %
 %
 %
@@ -165,7 +165,7 @@ $\rightarrow$
 $\rightarrow$
 Java, .NET \orangetext{projects request, response each other}
 \hlgray{DataModel.proto:} 
-\lstinline{message forecast{required string weekday =1;required int32 temperature =2;repeated string tags =3; //optional float price=4;]}
+\lstinline{message forecast{required string weekday=1;required int32 temperature=2;repeated string tags=3;//optional float price=4;]}
 \hlgray{
 fieldTag(5bit)=1, type(3bit)=2(lengthDelimited: string)
 :00001 010
@@ -213,13 +213,13 @@ Protocol(Pres.Layer)
 \bluetext{+}
 Transport(CommLayer)
 \orangetext{Thrift Service:}
-\lstinline{service MathematicsService{i32 add(1:i32 add1, 2:i32 add2)//]}
+\lstinline{service MathematicsService{i32 add(1:i32 add1,2:i32 add2)//]}
 \orangetext{Java Impl. Service:}
-\lstinline{public class MathematicsServiceHandler implements MathematicsService.Iface{public long add(int add1,int add2) throws TException{return add1 + add2;}
+\lstinline{public class MathematicsServiceHandler implements MathematicsService.Iface{public long add(int add1,int add2) throws TException{return add1+add2;}
 \orangetext{Thrift S:}
-\lstinline{public class MathematicsServer{public void start(Integer port) throw TTransportException{TServerSocket serverTransport=new TSS(port); MathematicsService.Processor p=new MS.P(new MathematicsServerHandler()); TServer s=new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(p)); print("StartingS"); server.serve();}
+\lstinline{public class MathematicsServer{public void start(Integer port) throw TTransportException{TServerSocket serverTransport=new(port); MathematicsService.Processor p=new MS.P(new MathematicsServerHandler()); TServer s=new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(p));print("StartingS");server.serve();}
 \orangetext{Thrift C:}
-\lstinline{public class MathematicClient {public Integer add(Integer add1, Integer add2) {TTransport transport; try {transport = new TSocket(mIpServer, mPort); TProtocol protocol = new TBinaryProtocol(transport); MathematicsService.Client c=new MathematicsService.Client(protocol); transport.open(); Integer addResult=c.add(add1, add2); return addResult; catch (TTransportException TException){finally {transport.close();}
+\lstinline{public class MathematicClient {public Integer add(Integer add1,Integer add2){TTransport transport;try{transport=new TSocket(mIpServer, mPort);TProtocol protocol=new TBinaryProtocol(transport);MathematicsService.Client c=new MathematicsService.Client(protocol); transport.open();Integer addResult=c.add(add1, add2);return addResult;catch (TTransportException TException){finally{transport.close();}
 %
 %
 %
@@ -269,6 +269,7 @@ fieldTag(5bit)=1, type=0(Var-int)
 :00001 000
 $\rightarrow$}
 \redtext{08, d0(\bluetext{1}1010000) 91(\bluetext{1}0010001) 32(\bluetext{0}0110010)}
+\begin{CJK*}{UTF8}{gbsn}最后7bit放最前面，最前7bit后面\end{CJK*}
 \hlgray{$\rightarrow$ 821456;}
 \hlgray{
 fieldTag(5bit)=1, type=0(Var-int)

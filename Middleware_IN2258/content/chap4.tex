@@ -8,12 +8,11 @@ ID of address or attribute for name\bluetext{DNS},
 ID of machine for service\bluetext{RPC},
 ID of machine for obj\bluetext{RMI}.
 \\
-\redtext{DNSDomain Name SY}
+\redtext{DNS Domain Name SY}
 $\rightarrow$
 \orangetext{url to IP of host} serving this domain.
 \orangetext{Map domain names to IP},
 world-wide distributed DB of \orangetext{name servers}
-\textbar
 \redtext{Types of Domain Names:}
 \bluetext{Root domain:}
 top of tree unnamed level\greentext{(.)}
@@ -39,21 +38,27 @@ Maintains list DNS records in zone file
 \bluetext{Non-authoritative name S}
 Receives info about domains from other S
 Forwards queries, answers with cached result.
-\textbar
-\redtext{Name resolution types:}
-\bluetext{Recursion:}
-C DNS req.1
-$\leftrightarrow$
-DNS S1 req.2,resp.4
-$\leftrightarrow$
-DNS S2 resp.3
-\bluetext{Iteration:}
-C DNS req.1
-$\leftrightarrow$
-DNS S1 add from S2,
-C DNS req.3
-$\leftrightarrow$
-DNS S2 DNS resp.
+\redtext{\hlgray{Attacks:}}
+DNS amplification attack,
+DNS cache poisoning
+\redtext{\hlgray{Root\& Zone server iterative:}}
+\hlgray{As entry point of DNS hierarchy. Most frequently requested S}
+\redtext{\hlgray{Name resolution types:}}
+r1$\rightarrow$z1$\rightarrow$d1(w1)
+\bluetext{\hlgray{Iteration dns1(iter): c1 to web server w1:}}
+\hlgray{
+c1$\rightarrow$dns1(URLw1), dns1$\rightarrow$c1(IPr1);
+c1$\rightarrow$r1(URLw1), r1$\rightarrow$c1(IPz1);
+c1$\rightarrow$z1(URLw1), z1$\rightarrow$c1(IPd1);
+c1$\rightarrow$d1(URLw1), d1$\rightarrow$c1(IPw1)}
+\bluetext{\hlgray{Recursion dns2(rec): c2 to w4}}
+\hlgray{
+c2$\rightarrow$dns2(URLw4);
+dns2$\rightarrow$ r1(URLw4), r1$\rightarrow$ dns2(IPz1);
+dns2$\rightarrow$ z1(URLw4), z1$\rightarrow$ dns2(IPd2);
+dns2$\rightarrow$ d2(URLw4), d2$\rightarrow$ dns2(IPsd2);
+dns2$\rightarrow$ sd2(URLw4), sd2$\rightarrow$ dns2(IPw4);
+dns2$\rightarrow$ c1(IPw4)$\rightarrow$}
 \\
 \rtext{Directory services}
 Shared info SY infrastructure in DB,
@@ -109,18 +114,47 @@ Many WS-* extensions
 \bluetext{Body}
 Contains the payload, 
 Further specifications define body structure
+\btext{\hlgray{--:}}
+\hlgray{CRUD heavy APPs are bad use case for RPC/SOAP:
+lot of (CRUD) operations,
+define the same (CRUD) operations for different object types,
+define a lot of Msg containing no para. or only one primitive,
+depends on XML(overhead)}
 \rtext{RPC vs DocumentStyle}
 SOAP Msg constructed in a specific way, 
 call the Web service, 
 Body of Msg contains para. and method name 
 as wrapper element,
 marshalling/unmarshalling
-\\
-\rtext{RESTful:}
-Representational State Transfer,
-architectural style distr. SY
-\textbar contains no restrictions, Message body is a XML document, C/S handles the marshalling/unmarshalling
 \hlgray{XML Schema Data Model for web service:}
 \lstinline{<schema targetNamespace="http://company.com/datamodel.xsd"xmlns= "http://www.w3.org/2000/10/XMLSchema"xmlns:dm="http://company.com/datamodel.xsd"><complexType name="customerType"><all><element name="customerId" type="integer"/><element name="date" type="date"/><element name="name" type="string"/><element name="address" type="dm:addressType"/></all></complexType><complexType name="addressType"><all><element name="city" type="string"/></all></complexType><complexType name="orderType"><all><element name="items"><complexType><sequence><element name="item" maxOccurs="unbound" type="dm:itemType"/></...>}
 \hlgray{WSDL file for web service interface:}
 \lstinline{<definitions name="CustomerService"targetNamespace="http://company.com/customerservice.wsdl"xmlns:ws="http://company.com/customerservice.wsdl"xmlns:dm=" http://company.com/datamodel.xsd"xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"xmlns="http://schemas.xmlsoap.org/wsdl/"><message name="AddItemToOrderInput"><part name="orderId" element="xsd:integer"/><part name="item" element="dm:itemType"/></><message name="AddItemToOrderOutput"><part name="order" element="xsd:boolean"/></><portType name="CustomerServicePortType"><operation name="AddItemToOrder"><input message="ws:AddItemToOrderInput"/><output message="ws:AddItemToOrderOutput"/></></><binding name="CustomerServiceSoapBinding"type="ws:CustomerServicePortType"><soap:binding style="wsdl:document"transport="http://schemas.xmlsoap.org/soap/http"/></><service name="CustomerService"><documentation>Customer Service</documentation><port name="CustomerServicePort"binding="cs:CustomerServiceSoapBinding"><soap:address location="http://company.de/customerservice"/>}
+\\
+\rtext{RESTful:}
+Representational State Transfer;
+architectural style distr. SY;
+contains no restrictions, Msg body is XML document, 
+C/S handles the marshalling/unmarshalling
+\btext{++:}
+data centric(good for CRUD heavy Apps);
+Resources identfied by URL, unified schema;
+Access with same operations POST, GET, PUT, DELETE;
+independent of data repres.
+\bluetext{\hlgray{Resource path:}}
+Customer(customerId):
+"http://company.com/customerservice/ customers/{customerId}/“;
+Order(orderId):
+".same./orders/{orderId}/“;
+Item(itemId):
+".same./orders/{orderId}/items/{itemId}/“;
+Category(categoryId):
+".same./categories/{categoryId}/“
+\bluetext{\hlgray{Operations:}}
+Create Order: POST ".same./orders/“;
+Update Order: PUT ".same./{orderId}“;
+Get Order: GET ".same./orders/{orderId}“;
+Delete Order: DELETE ".same./orders/{orderId}“;
+Confirm Order:PUT ".same./orders/{orderId}/confirm"
+Add Item: POST ".same./orders/{orderId}/items/“;
+Delete Item: DELETE ".same./orders/{orderId}/items/{itemId}“
